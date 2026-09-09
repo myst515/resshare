@@ -2,7 +2,12 @@ const express = require('express');
 const router = express.Router();
 const authService = require('../services/AuthService');
 
-// POST /api/auth/register
+/**
+ * POST /api/auth/register
+ * Registers a new user account.
+ * Request body: { email: string, password: string, role?: string }
+ * Response: 201 with { id, email, role } on success, 400 with { error } on failure.
+ */
 router.post('/register', async (req, res) => {
   try {
     const { email, password, role } = req.body;
@@ -13,7 +18,12 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// POST /api/auth/login
+/**
+ * POST /api/auth/login
+ * Authenticates a user and issues a JWT.
+ * Request body: { email: string, password: string }
+ * Response: 200 with { token, user } on success, 401 with { error } on failure.
+ */
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
