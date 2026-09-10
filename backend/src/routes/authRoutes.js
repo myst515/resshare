@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authService = require('../services/AuthService');
+const { requireAuth, requireAdmin } = require('../middleware/authMiddleware');
 
 /**
  * POST /api/auth/register
@@ -32,6 +33,25 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     res.status(401).json({ error: err.message });
   }
+});
+
+
+/**
+ * GET /api/auth/me
+ * Protected route — returns the currently authenticated user's info.
+ * Requires a valid JWT in the Authorization header.
+ */
+router.get('/me', requireAuth, (req, res) => {
+  res.status(200).json({ id: req.user.id, email: req.user.email, role: req.user.role });
+});
+
+/**
+ * GET /api/auth/admin-only
+ * Protected route — only accessible to users with ADMINISTRATOR role.
+ * Demonstrates role-based access control for future features like Facility Management.
+ */
+router.get('/admin-only', requireAuth, requireAdmin, (req, res) => {
+  res.status(200).json({ message: `Welcome, admin ${req.user.email}` });
 });
 
 module.exports = router;
