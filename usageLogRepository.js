@@ -21,7 +21,7 @@ async function getLogsByFacility(facilityId, from, to) {
 
 async function getUsageTrends(facilityId) {
   const result = await pool.query(
-    `SELECT DATE(start_time) AS day, COUNT(*) AS sessions
+    `SELECT DATE(start_time AT TIME ZONE 'Africa/Johannesburg') AS day, COUNT(*) AS sessions
      FROM usage_logs WHERE facility_id = $1
      GROUP BY day ORDER BY day`,
     [facilityId]
