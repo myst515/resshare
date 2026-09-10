@@ -1,11 +1,18 @@
 import './index.css';
 import React from 'react';
-import Header from './Header.jsx';
+
+{/*This is a registration form component which renders a form for the user to fill in their details. 
+        The form contains fields for the user's name, surname, email, student number, floor number, password and confirm password. 
+        The form also contains a submit button which when clicked will call the submit function. 
+        The submit function will log the values of the form fields to the console and check if the password and confirm password fields match. 
+        If they do not match an alert will be shown to the user. 
+        The submit function will also call the par.createHandler() function which is passed as a prop from the parent component. 
+        This allows for dynamic rendering of the RegistrationForm component based on user interaction.*/}
 
 export default function RegistrationForm(par) {
-    const [password, setPassword] = React.useState('');
+    const [password, setPassword] = React.useState(''); {/*This creates a password state variable that is an empty string by default, setPassword is a function used to update the value of the password state variable.*/}
     const [confirmPassword, setConfirmPassword] = React.useState('');
-
+    
     function submit(e) {
         console.log(e.get('Name'));
         console.log(e.get('Surname'));
@@ -16,7 +23,7 @@ export default function RegistrationForm(par) {
         if (password !== confirmPassword) {
             alert('Passwords do not match');
         }
-        par.par();
+        par.createHandler();
     return;
     }
 
@@ -45,7 +52,7 @@ export default function RegistrationForm(par) {
                     <input type="number" placeholder="e.g 12345678" name="StudentNo" required/>
                 </label>
                 <br />
-                <br />
+                <br /> 
                 <label>FloorNo:
                     <input type="number" placeholder="1" min="1" max="5" name="FloorNo" required/>
                 </label>
