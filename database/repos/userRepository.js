@@ -1,8 +1,8 @@
 const pool = require('../db');
-const bcrypt = require('bcrypt');
+const passwordHasher = require('../passwordHasher');
 
 async function createUser(name, email, password, role = 'resident', floorNumber = null) {
-  const passwordHash = await bcrypt.hash(password, 10);
+  const passwordHash = await passwordHasher.hash(password);
   const result = await pool.query(
     `INSERT INTO users (name, email, password_hash, role, floor_number)
      VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, role, floor_number`,
@@ -19,7 +19,7 @@ async function findByEmail(email) {
 async function verifyCredentials(email, password) {
   const user = await findByEmail(email);
   if (!user) return null;
-  const match = await bcrypt.compare(password, user.password_hash);
+  const match = await passwordHasher.verify(password, user.password_hash);
   return match ? user : null;
 }
 

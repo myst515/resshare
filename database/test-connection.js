@@ -1,4 +1,4 @@
-const { createUser } = require('./repositories/userRepository');
+const { createUser, verifyCredentials } = require('./repositories/userRepository');
 const { getAllFacilities, addFacility } = require('./repositories/facilityRepository');
 const { insertLog, getLogsByFacility, getUsageTrends } = require('./repositories/usageLogRepository');
 
@@ -6,6 +6,12 @@ async function main() {
   console.log('Testing user creation...');
   const user = await createUser('Test User', 'test3@example.com', 'password123');
   console.log('Created:', user);
+
+  console.log('Testing password verification (correct password)...');
+  console.log(await verifyCredentials(user.email, 'password123'));
+
+  console.log('Testing password verification (wrong password)...');
+  console.log(await verifyCredentials(user.email, 'wrongpassword'));
 
   console.log('Testing facility creation...');
   const facility = await addFacility('Washer #1', 'Washing Machine', 'Floor 2 Laundry Room', 2);
