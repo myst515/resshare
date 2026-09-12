@@ -3,7 +3,7 @@
  * Service responsible for monitoring active usage sessions.
  * It sends expiry reminders and automatically releases expired sessions.
  */
-export default class ReleaseTimerService {
+class ReleaseTimerService {
     constructor(
         sessionManager,
         notificationService,
@@ -129,6 +129,8 @@ export default class ReleaseTimerService {
         });
     }
 }
+
+module.exports = ReleaseTimerService;
 
 
 

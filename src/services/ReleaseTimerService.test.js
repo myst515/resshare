@@ -1,4 +1,4 @@
-import ReleaseTimerService from "./ReleaseTimerService";
+const ReleaseTimerService = require("./ReleaseTimerService");
 
 describe("ReleaseTimerService", () => {
     let sessionManager;
