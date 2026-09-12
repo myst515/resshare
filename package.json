@@ -1,0 +1,20 @@
+{
+  "name": "group-13",
+  "version": "1.0.0",
+  "description": "ResShare",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://repo.ee.up.ac.za/2026_epe321/group-13"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "jest": "^30.5.1"
+  }
+}
