@@ -3,9 +3,10 @@ ResShare
 
 ## Member Responsibilities
 1. Kagiso is responsible for the Front-End. This includes the login/registration page and user dashboard with facility status display.
-2. Bongiwe & Sphesihle are responsible for the Back-End. This includes resource/session logic, REST API endpoints, and JWT issuing/verification.
-3. Tshepiso is responsible for the Database and user authentication. This includes, the PostgreSQL schema design and secure password hashing and storage.
-4. Mpho is responsible for testing, creating API-service for Back-End, implementing auto-session release, and Integration. He will perform unit and integration testing across all layers verifying that front-end, back-end, and database components work together, and he will also coordinate bug tracking.
+2. Sphesihle is responsible for Backend-authentication(login, JWT, roles), Facility CRUD, and Usage Session logic(start/end/duration/concurrency checks).
+3. Bongiwe is responsible for Websocket real-time push, Notifications, and trends aggregation, which are all in Backend.
+4. Tshepiso is responsible for the Database and user authentication. This includes, the PostgreSQL schema design and secure password hashing and storage.
+5. Mpho is responsible for testing, creating API-service for Back-End, implementing auto-session release, and Integration. He will perform unit and integration testing across all layers verifying that front-end, back-end, and database components work together, and he will also coordinate bug tracking.
 
 
 ## Description
