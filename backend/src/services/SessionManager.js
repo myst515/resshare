@@ -5,11 +5,18 @@ const UsageSession = require('../models/UsageSession');
 const MIN_DURATION_MINUTES = 10;
 const MAX_DURATION_MINUTES = 180;
 
-// Temporary in-memory stores (replace with PostgreSQL calls later)
 const facilities = [
-  new Facility(1, 'Washing Machine 1', 'WASHING_MACHINE'),
-  new Facility(2, 'Dryer 1', 'DRYER'),
+  new Facility(1, 'Washing Machine 1', 'WASHING_MACHINE', 'Block A, Level 1'),
+  new Facility(2, 'Dryer 1', 'DRYER', 'Block A, Level 1'),
 ];
+
+/**
+ * Exposes the shared facilities array so FacilityManager can manage it too.
+ * Both classes need to work with the same in-memory list to stay in sync.
+ */
+function getFacilities() {
+  return facilities;
+}
 const sessions = [];
 let nextSessionId = 1;
 
@@ -135,3 +142,4 @@ class SessionManager {
 }
 
 module.exports = new SessionManager();
+module.exports.getFacilities = getFacilities;
