@@ -15,12 +15,11 @@ import react from 'react'
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = react.useState(false); {/*This creates a isAuthenticated state variable that is false by default, setIsAuthenticated is a function used to update the value of the isAuthenticated state variable.*/}
   const [isAdmin, setIsAdmin] = react.useState(false); {/*This creates a isAdmin state variable that is false by default, setIsAdmin is a function used to update the value of the isAdmin state variable.*/}
-  
   return(
     <BrowserRouter>
       <Routes>
       <Route path="/" element={<LoginPage authFunc={setIsAuthenticated} adminFunc={setIsAdmin} />} />
-      <Route path="/DashboardPage" element={isAuthenticated? <DashboardPage /> : <Navigate to="/" /> } />
+      <Route path="/DashboardPage" element={isAuthenticated? <DashboardPage user={{name:"Kagiso"}}/> : <Navigate to="/" /> } />
       <Route path="/AdminPage" element={isAuthenticated && isAdmin ? <AdminPage /> : <Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
