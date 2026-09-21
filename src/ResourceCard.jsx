@@ -1,6 +1,6 @@
 import "./index.css"
 
-export default function ResourceCard({ title, availability, total, link }) {
+export default function ResourceCard({ title, availability, total, link, handleDropDown}) {
 
     return (
         <div className="resource-card">
@@ -21,7 +21,7 @@ export default function ResourceCard({ title, availability, total, link }) {
               </div>
             </div>
 
-            <button className="book-button">
+            <button className="book-button" onClick={handleDropDown}>
               Book Now
             </button>
 
