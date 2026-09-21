@@ -1,15 +1,23 @@
 .MyHeader {
     display: flex;
+    top: 0;
+    z-index: 100;
+    position: sticky;
     flex-direction: column;
     align-items: left;
     text-align: left;
     font-family: 'Times New Roman', Times, serif;
     font-size: 2rem;
     color: white;
-
     margin-bottom: 50px;
-    margin-top: 25px;
+    margin-top: 0px;
     margin-left: 10px;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
 }
 
 .MyHeader img {
@@ -17,6 +25,7 @@
     height: 60px;
     vertical-align: middle;
     margin-left: 20px;
+    margin-top: 25px;
 }
 
 .MyHeader img:hover {
@@ -29,48 +38,152 @@ a.active {
 }
 
 .Body {
-    background-image: url('./src/assets/building-traffic-lights-street-outdoors-4k-g0-1920x1080.jpg');
-    background-size: fill;
-    background-repeat: no-repeat;
+    background-image: url('./assets/building-traffic-lights-street-outdoors-4k-g0-1920x1080.jpg');
+    background-size: auto;
+    background-repeat: repeat-y;
     height: 100%;
     margin: auto;
 
 }
 
+.login-page {
+    background-image: url('./assets/building-traffic-lights-street-outdoors-4k-g0-1920x1080.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    min-height: 100vh;
+    width: 100%;
+}
+
 .MyHeaderDashboard {
+    position: sticky;
+    top: 0;
+    z-index: 100;
     display: flex;
-    flex-direction: column;
-    align-items: left;
-    text-align: left;
     font-family: 'Times New Roman', Times, serif;
     font-size: 1.5rem;
     color: black;
     background-color: white;
     margin-bottom: 50px;
-    width: 100%;
+    width: auto;
+    margin: auto;
     height: 85px;
+}
+
+.MyHeaderLogo {
+    display: flex;
+    align-items: center;
+    text-align: left;
+    flex-direction: column;
+}
+
+.MyHeaderDashboard span {
+    margin-left: 10px;
 }
 
 .MyHeaderDashboard img {
     width: 50px;
     height: 50px;
     vertical-align: middle;
-    margin-left: 20px;
     margin-top: 5px;
 }
 
+/* Right side actions */
+.MyHeaderDashboardActions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: auto;
+    margin-right: 20px;
+
+}
+
+.MyHeaderDashboardActions button:hover {
+    opacity: 0.6;
+}
+
+.MyHeaderDashboardLogout {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.MyHeaderDashboardDivider {
+    width: 1px;
+    height: 30px;
+    background: #e5e7eb;
+}
+
+.MyHeaderDashboardUser {
+    display: flex;
+    flex-direction: column;
+    align-items: baseline;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.MyHeaderDashboardUserName {
+    font-size: 16px;
+    font-weight: 600;
+    color: black;
+}
+
+.MyHeaderDashboardUserFloor {
+    font-size: 14px;
+    color: rgb(177, 175, 175);
+}
+
+.MyHeaderDashboardAvatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+
 .BodyDashboard {
-    background-color: rgb(124, 121, 121);
+    background-color: rgb(177, 175, 175);
     margin: auto;
-    text-align: center;
+    min-height: 100vh;
+    max-height: 100%;
+    text-align: left;
     font-family: 'Times New Roman', Times, serif;
     font-size: 2rem;
+}
+
+.BodyDashboard h1 {
+    color: black;
+    margin-left: 40px;
+    font-size: 40px;
+    margin-top: 20px;
+}
+
+.BodyDashboard p {
+    color: black;
+    margin-left: 40px;
+    margin-top: 0px;
+    font-size: 20px;
+}
+
+.BodyDashboard h2 {
+    color: black;
+    margin-left: 40px;
+    font-size: 30px;
+    margin-top: 0px;
 }
 
 
 .LoginForm {
     font-family: 'Times New Roman', Times, serif;
     display: flex;
+    align-content: center;
     flex-direction: column;
     height: max-content;
     width: 450px;
@@ -99,6 +212,7 @@ input[type="password"] {
     font-family: 'Times New Roman', Times, serif;
     display: flex;
     flex-direction: column;
+    align-content: center;
     height: max-content;
     width: 450px;
     margin: auto;
@@ -161,8 +275,82 @@ input[type="number"] {
     gap: 20x 20px;
 }
 
+.dashboard-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.resources-section {
+    min-width: 0;
+}
+
+.activity-section {
+    margin-top: 20px;
+    min-width: 0;
+}
+
+.resource-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+@media (max-width: 900px) {
+    .resource-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+@media (max-width: 700px) {
+    .dashboard-content {
+        grid-template-columns: 1fr;
+    }
+
+    .resource-grid {
+        flex-direction: column;
+    }
+}
+
+.activity-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    margin-right: 40px;
+    margin-left: 40px;
+    border-radius: 12px;
+    font-size: 30px;
+    padding: 18px 18px;
+    width: fit-content;
+    height: fit-content;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.activity-card span {
+    font-size: 20px;
+    margin: auto;
+}
+
+.building-news {
+    background: white;
+    border: 1px solid #e5e7eb;
+    margin-right: 40px;
+    margin-left: 40px;
+    border-radius: 12px;
+    font-size: 30px;
+    padding: 18px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.building-news:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
 .LoginForm,
 .RegistrationForm {
+    align-content: center;
     width: 400px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
 }
@@ -170,14 +358,16 @@ input[type="number"] {
 .resource-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    gap: 40px;
     margin-top: 20px;
-    margin-left: 20px;
+    margin-left: 40px;
 }
 
 .resource-card {
-    width: 260px;
+    max-width: 300px;
+    width: 100%;
     background: white;
+    box-sizing: border-box;
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid #e5e7eb;
@@ -226,4 +416,142 @@ input[type="number"] {
 
 .book-button:hover {
     opacity: 0.6;
+}
+
+.resource-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.resource-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    flex: 1;
+}
+
+.resource-name h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 900;
+    color: #172033;
+}
+
+.available {
+    font-size: 9px;
+    font-weight: 600;
+
+    color: #008f83;
+    background: #e5f7f5;
+
+    padding: 3px 5px;
+    border-radius: 4px;
+
+    white-space: nowrap;
+}
+
+.rbd-dropdown {
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background: #f8f9fc;
+    border: 0px solid #eceef2;
+    border-radius: 12px;
+    max-width: 300px;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.rbd-inner {
+    padding: 14px 16px 16px;
+    max-width: 300px;
+
+}
+
+.rbd-label {
+    margin: 0 0 10px;
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.rbd-unit-list {
+    list-style: none;
+    margin: 0 0 12px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.rbd-unit {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a2e;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.rbd-unit:hover:not(:disabled) {
+    border-color: #93c5fd;
+}
+
+.rbd-unit--selected {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+.rbd-unit--disabled {
+    background: #f1f2f4;
+    color: #9ca3af;
+    cursor: not-allowed;
+    border-color: #e5e7eb;
+}
+
+.rbd-unit-status {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #9ca3af;
+}
+
+.rbd-unit-status--free {
+    color: #2563eb;
+}
+
+.rbd-unit-status--ok {
+    color: #16a34a;
+}
+
+.rbd-confirm-btn {
+    width: 100%;
+    background: #008f83;
+    color: white;
+    border: none;
+    border-radius: 100px;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+}
+
+.rbd-confirm-btn:hover {
+    opacity: 0.6;
+}
+
+.rbd-confirm-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
