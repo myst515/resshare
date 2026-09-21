@@ -10,25 +10,6 @@ import { ChevronDown, Check, Lock, WashingMachine } from 'lucide-react';
  * existing resource card and control its visibility with "Book Now" button.
  *
  * ------------------------------------------------------------------
- * USAGE WITH YOUR EXISTING CARD (no changes to your card needed):
- *
- *   const [isOpen, setIsOpen] = useState(false);
- *
- *   <YourExistingResourceCard onBookClick={() => setIsOpen(o => !o)} />
- *
- *   <ResourceBookingDropdown
- *     isOpen={isOpen}
- *     units={[
- *       { id: 1, label: "Machine 1", available: true },
- *       { id: 2, label: "Machine 2", available: true },
- *       { id: 3, label: "Machine 3", available: false },
- *       { id: 4, label: "Machine 4", available: false },
- *     ]}
- *     onBook={(unit) => {
- *       console.log("Booked:", unit);
- *     }}
- *   />
- * ------------------------------------------------------------------
  *
  * Props:
  * - isOpen: boolean              whether the dropdown is expanded (you own this state)
