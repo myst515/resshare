@@ -5,7 +5,14 @@
  * since later tests depend on the facility created in the first test.
  */
 const pool = require('../db');
-const { addFacility, getFacilityById, getFacilitiesByFloor, updateStatus, removeFacility } = require('./facilityRepository');
+const {
+  addFacility,
+  getFacilityById,
+  getFacilitiesByFloor,
+  updateStatus,
+  removeFacility,
+  isAvailable
+} = require('./facilityRepository');
 
 // Tracks the id of the facility created during these tests, so afterAll
 // knows what to clean up (and so later tests can look it up by id).
@@ -27,6 +34,13 @@ test('addFacility creates a facility with status available', async () => {
   expect(facility.floor_number).toBe(9);
 });
 
+// Confirms isAvailable returns true right after creation, since new
+// facilities default to 'available' status.
+test('isAvailable returns true for a newly created facility', async () => {
+  const available = await isAvailable(testFacilityId);
+  expect(available).toBe(true);
+});
+
 // Confirms the facility created above can be retrieved again by its id.
 test('getFacilityById retrieves the created facility', async () => {
   const facility = await getFacilityById(testFacilityId);
@@ -46,6 +60,20 @@ test('updateStatus changes the facility status', async () => {
   await updateStatus(testFacilityId, 'in_use');
   const facility = await getFacilityById(testFacilityId);
   expect(facility.status).toBe('in_use');
+});
+
+// Confirms isAvailable returns false once the facility is in_use — this
+// is the core check RES-8 needs before a resident can start a session.
+test('isAvailable returns false when the facility is in_use', async () => {
+  const available = await isAvailable(testFacilityId);
+  expect(available).toBe(false);
+});
+
+// Confirms isAvailable handles a facility that doesn't exist, rather
+// than throwing or returning something truthy.
+test('isAvailable returns false for a nonexistent facility id', async () => {
+  const available = await isAvailable(999999999);
+  expect(available).toBe(false);
 });
 
 // Confirms removeFacility actually deletes the row — checked by trying to

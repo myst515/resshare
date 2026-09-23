@@ -9,7 +9,7 @@ const pool = new Pool({
   host: 'localhost',
   port: 5432,
   user: 'postgres',
-  password: 'YOUR_PASSWORD_HERE', // TODO: move to environment variable before final submission
+  password: 'TshepisoBeautyMabelane37@', // TODO: move to environment variable before final submission
   database: 'resshare',
 });
 

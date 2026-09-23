@@ -70,11 +70,23 @@ async function removeFacility(id) {
   await pool.query(`DELETE FROM facilities WHERE id = $1`, [id]);
 }
 
+/**
+ * Checks whether a facility currently exists and is available for use.
+ * @param {number} id
+ * @returns {Promise<boolean>} true if the facility exists and its status is 'available'
+ */
+async function isAvailable(id) {
+  const result = await pool.query(`SELECT status FROM facilities WHERE id = $1`, [id]);
+  if (result.rows.length === 0) return false;
+  return result.rows[0].status === 'available';
+}
+
 module.exports = {
   getAllFacilities,
   getFacilityById,
   getFacilitiesByFloor,
   updateStatus,
   addFacility,
-  removeFacility
+  removeFacility,
+  isAvailable
 };
