@@ -1,44 +1,115 @@
-const authService = require('../services/AuthService');
+/**
+ * authMiddleware.js
+ *
+ * Middleware used to protect backend routes.
+ *
+ * requireAuth:
+ *     Checks that the request contains a valid JWT.
+ *
+ * requireAdmin:
+ *     Checks that the authenticated user has administrator privileges.
+ */
+
+const authService =
+    require('../services/AuthService');
+
 
 /**
- * Middleware that verifies a request has a valid JWT.
- * Expects the token in the Authorization header as: "Bearer <token>".
- * If valid, attaches the authenticated user to req.user and calls next().
- * If missing or invalid, responds with 401 Unauthorized.
+ * Middleware that requires the user to be authenticated.
+ *
+ * The frontend must send:
+ *
+ * Authorization: Bearer <JWT>
  */
-function requireAuth(req, res, next) {
-  const authHeader = req.headers['authorization'];
+async function requireAuth(req, res, next) {
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Missing or malformed Authorization header' });
-  }
+    const authHeader =
+        req.headers['authorization'];
 
-  const token = authHeader.split(' ')[1];
 
-  try {
-    const user = authService.validateToken(token);
-    req.user = user; // attach the user so later route handlers can use it
-    next();
-  } catch (err) {
-    return res.status(401).json({ error: err.message });
-  }
+    // Check that the Authorization header exists
+    // and follows the expected Bearer token format.
+    if (
+        !authHeader ||
+        !authHeader.startsWith('Bearer ')
+    ) {
+
+        return res.status(401).json({
+            error:
+                'Missing or malformed Authorization header'
+        });
+    }
+
+
+    // Extract the JWT from:
+    // "Bearer <token>"
+    const token =
+        authHeader.split(' ')[1];
+
+
+    try {
+
+        /*
+         * NEW INTEGRATION:
+         *
+         * validateToken() now checks both:
+         *
+         * 1. Whether the JWT is valid.
+         * 2. Whether the user still exists in PostgreSQL.
+         */
+        const user =
+            await authService.validateToken(
+                token
+            );
+
+
+        // Store the authenticated user on the request.
+        // Protected routes can access it through req.user.
+        req.user = user;
+
+
+        next();
+
+    } catch (err) {
+
+        return res.status(401).json({
+            error: err.message
+        });
+    }
 }
 
+
 /**
- * Middleware that verifies the request's user has ADMINISTRATOR privileges.
- * Must be used AFTER requireAuth, since it relies on req.user being set.
- * If the user is not an admin, responds with 403 Forbidden.
+ * Middleware that requires administrator privileges.
+ *
+ * This middleware should be used after requireAuth.
  */
 function requireAdmin(req, res, next) {
-  if (!req.user) {
-    return res.status(401).json({ error: 'Not authenticated' });
-  }
 
-  if (req.user.role !== 'ADMINISTRATOR') {
-    return res.status(403).json({ error: 'Administrator privileges required' });
-  }
+    // The user should already have been authenticated.
+    if (!req.user) {
 
-  next();
+        return res.status(401).json({
+            error: 'Not authenticated'
+        });
+    }
+
+
+    // The database uses the role value "admin".
+    if (req.user.role !== 'admin') {
+
+        return res.status(403).json({
+            error:
+                'Administrator privileges required'
+        });
+    }
+
+
+    next();
 }
 
-module.exports = { requireAuth, requireAdmin };
+
+module.exports = {
+    requireAuth,
+    requireAdmin
+};

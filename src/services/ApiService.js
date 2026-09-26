@@ -1,75 +1,155 @@
-// Service used to communicate with the backend through HTTP requests.
+/**
+ * ApiService
+ *
+ * Provides a central interface between the React frontend
+ * and the Node.js backend REST API.
+ *
+ * The service automatically attaches the JWT stored in
+ * localStorage to authenticated requests.
+ */
 
 class ApiService {
 
-    // Stores the base URL used for all API requests.
-    constructor(baseURL) {
+
+    /**
+     * Creates an ApiService instance.
+     *
+     * @param {string} baseURL - Base URL of the backend API.
+     */
+    constructor(
+        baseURL = 'http://localhost:5000/api'
+    ) {
+
         this.baseURL = baseURL;
     }
 
-    // Sends a GET request to retrieve data from the specified endpoint.
+
+    /**
+     * Sends a GET request to the backend.
+     *
+     * @param {string} endpoint - API endpoint.
+     * @returns {Object} Parsed JSON response.
+     */
     async get(endpoint) {
-        const response = await fetch(`${this.baseURL}${endpoint}`);
 
-        // Reject the request if the server returns an unsuccessful status.
+        /*
+         * NEW INTEGRATION:
+         *
+         * Retrieve the JWT saved after login.
+         */
+        const token =
+            localStorage.getItem('token');
+
+
+        const response =
+            await fetch(
+                `${this.baseURL}${endpoint}`,
+                {
+
+                    method: 'GET',
+
+                    headers: {
+
+                        'Content-Type':
+                            'application/json',
+
+                        /*
+                         * Attach the JWT when one exists.
+                         *
+                         * The spread syntax prevents an
+                         * Authorization header being sent
+                         * when the user is not logged in.
+                         */
+                        ...(token && {
+                            Authorization:
+                                `Bearer ${token}`
+                        })
+                    }
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
         if (!response.ok) {
-            throw new Error(`GET request failed: ${response.status}`);
+
+            throw new Error(
+                result.error ||
+                'API request failed'
+            );
         }
 
-        // Convert the response body from JSON into a JavaScript object.
-        return response.json();
+
+        return result;
     }
 
-    // Sends a POST request to create or submit data to the specified endpoint.
+
+    /**
+     * Sends a POST request to the backend.
+     *
+     * @param {string} endpoint - API endpoint.
+     * @param {Object} data - Data to send.
+     * @returns {Object} Parsed JSON response.
+     */
     async post(endpoint, data) {
-        const response = await fetch(`${this.baseURL}${endpoint}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
 
-        // Reject the request if the server returns an unsuccessful status.
+        /*
+         * NEW INTEGRATION:
+         *
+         * Retrieve the JWT so that POST requests to
+         * protected endpoints can be authenticated.
+         */
+        const token =
+            localStorage.getItem('token');
+
+
+        const response =
+            await fetch(
+                `${this.baseURL}${endpoint}`,
+                {
+
+                    method: 'POST',
+
+                    headers: {
+
+                        'Content-Type':
+                            'application/json',
+
+                        ...(token && {
+                            Authorization:
+                                `Bearer ${token}`
+                        })
+                    },
+
+                    body:
+                        JSON.stringify(data)
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
         if (!response.ok) {
-            throw new Error(`POST request failed: ${response.status}`);
+
+            throw new Error(
+                result.error ||
+                'API request failed'
+            );
         }
 
-        return response.json();
-    }
 
-    // Sends a PUT request to update data at the specified endpoint.
-    async put(endpoint, data) {
-        const response = await fetch(`${this.baseURL}${endpoint}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
-
-        // Reject the request if the server returns an unsuccessful status.
-        if (!response.ok) {
-            throw new Error(`PUT request failed: ${response.status}`);
-        }
-
-        return response.json();
-    }
-
-    // Sends a DELETE request to remove data at the specified endpoint.
-    async delete(endpoint) {
-        const response = await fetch(`${this.baseURL}${endpoint}`, {
-            method: 'DELETE'
-        });
-
-        // Reject the request if the server returns an unsuccessful status.
-        if (!response.ok) {
-            throw new Error(`DELETE request failed: ${response.status}`);
-        }
-
-        return response.json();
+        return result;
     }
 }
 
-// Allows other files to import and use the ApiService class.
-module.exports = ApiService;
+
+/*
+ * Export one ApiService instance so that all React
+ * components communicate with the backend using the
+ * same API configuration.
+ */
+export default new ApiService();
