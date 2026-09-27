@@ -4,7 +4,7 @@ import {LogOut} from 'lucide-react';
 import avatarUrl from "./assets/User-Avatar.png"
 import {useNavigate} from 'react-router'
 
-export default function DashboardHeader({user = {name:"Kagiso", floor:"Floor 1"}}) {
+export default function DashboardHeader({user = {name:"Kagiso", floor:"Floor 1"}, admin}) {
     let navigate = useNavigate();
 
     function onLogout(){
@@ -14,7 +14,7 @@ export default function DashboardHeader({user = {name:"Kagiso", floor:"Floor 1"}
     return(
         <>
         {/*This is a header component which renders a header for the app. The header contains a logo and the name ResShare */}
-        <header className="MyHeaderDashboard">
+        <header className={!admin? "MyHeaderDashboard": "MyHeaderAdmin"}>
             <div className="MyHeaderLogo">
             <img src={MyReact} alt="ResShare logo"/>
             <span>ResShare</span>
@@ -33,7 +33,7 @@ export default function DashboardHeader({user = {name:"Kagiso", floor:"Floor 1"}
                 <div className="MyHeaderDashboardDivider" />
         
                 <div className="MyHeaderDashboardUser">
-                    <span className="MyHeaderDashboardUserName">{user.name}</span>
+                    <span className={!admin? "MyHeaderDashboardUserName" : "MyHeaderAdminUserName"}>{user.name}</span>
                     <span className="MyHeaderDashboardUserFloor">{user.floor}</span>
                 </div>
         
