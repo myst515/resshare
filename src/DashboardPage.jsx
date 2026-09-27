@@ -6,6 +6,8 @@ import WashingMachineImage from './assets/Washing machines.jpg'
 import DryerImage from './assets/Dryer.jpg'
 import StoveImage from './assets/Stove.jpg'
 import BookDropDown from './BookDropDown.jsx'
+
+/*DashboardPage is a component that renders all the Dashboard elements, and takes in a user object as props */
 export default function DashboardPage({user={name:"Kagiso" ,floor:"Floor 1"}}) {
     const[dropDownWasher, setDropDownWasher] = React.useState(false);
     const[dropDownDryer, setDropDownDryer] = React.useState(false);
@@ -25,6 +27,7 @@ export default function DashboardPage({user={name:"Kagiso" ,floor:"Floor 1"}}) {
                             { id: 3, label: "Washer 3", available: false },
                             { id: 4, label: "Washer 4", available: false }];
 
+    {/*The handleDropDown... functions handle the dropdown of each individual resource card, so that one dropdown doesn't cause all the resource cards to dropdown */}
     function handleDropDownWasher(){
         setDropDownWasher(x=>!x);
     }
@@ -35,6 +38,7 @@ export default function DashboardPage({user={name:"Kagiso" ,floor:"Floor 1"}}) {
         setDropDownStove(x=>!x);
     }
     
+    {/*checkAvailability is a function that iterates over the units object array to check the number of available resources so it can be displayed correctly on the resource cards */}
     function checkAvailability(units=[]){
         let countAvailable = 0;
         for (let x= 0; x < units.length; x++){
