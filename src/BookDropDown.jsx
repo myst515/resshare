@@ -4,35 +4,12 @@ import { useEffect, useState } from 'react';
 import { Check, Lock, Clock} from 'lucide-react';
 
 /**
- * ResourceBookingDropdown
- *
- * A standalone dropdown panel for booking individual units of a resource.
+ * BookDropdown is standalone dropdown panel component for booking individual units of a resource.
  * It renders nothing but the panel itself — mounted directly below
  * existing resource card and control its visibility with "Book Now" button.
- *
- * ------------------------------------------------------------------
- * USAGE WITH YOUR EXISTING CARD (no changes to your card needed):
- *
- *   const [isOpen, setIsOpen] = useState(false);
- *
- *   <YourExistingResourceCard onBookClick={() => setIsOpen(o => !o)} />
- *
- *   <ResourceBookingDropdown
- *     isOpen={isOpen}
- *     units={[
- *       { id: 1, label: "Machine 1", available: true },
- *       { id: 2, label: "Machine 2", available: true },
- *       { id: 3, label: "Machine 3", available: false },
- *       { id: 4, label: "Machine 4", available: false },
- *     ]}
- *     onBook={(unit) => {
- *       console.log("Booked:", unit);
- *     }}
- *   />
- * ------------------------------------------------------------------
- *
+ * 
  * Props:
- * - isOpen: boolean              whether the dropdown is expanded (you own this state)
+ * - isOpen: boolean              whether the dropdown is expanded or not
  * - units: Array<{ id, label, available }>
  * - onBook: (unit) => void       called when the user confirms a booking
  * - onClose?: () => void         optional, called after a booking is confirmed
@@ -40,17 +17,16 @@ import { Check, Lock, Clock} from 'lucide-react';
  *                                 from the parent's state)
  */
 
-    
-
 export default function BookDropDown({units=[{ id: 1, label: "Machine 1", available: true}, { id: 2, label: "Machine 2", available: true},
-                                    { id: 3, label: "Machine 3", available: false,},{ id: 4, label: "Machine 4", available: false}], isOpen}){
+                                    { id: 3, label: "Machine 3", available: false,},{ id: 4, label: "Machine 4", available: false}], isOpen, onBook}){
         const DurationOptions = [];
         console.log(units)
         for (let minutes=15; minutes <= 120; minutes +=15){
             DurationOptions.push(minutes);
         }
 
-        function formatDuration(minutes){
+        {/*FormatDuration is a function that adjusts the input in minutes to a proper format if minutes >= 60*/}
+        function FormatDuration(minutes){
             if(minutes < 60){
                 return `${minutes} min`;
             }
@@ -65,7 +41,8 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
         const [ConfirmedId, setConfirmedId] = useState(null);
         const [usageMinutes, setUsageMinutes] = useState('');
 
-        const handleSelect = (unit) => {
+        {/*HandleSelect is a function that handles the selection of resources so that unavailable resources can't be selected, and it stores the selected resource's id to state. */}
+        const HandleSelect = (unit) => {
             if (!unit.available) {
 
             }
@@ -76,9 +53,10 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
             return;
         };
 
-        const SelectedUnit = units.find((unit) => unit.id === SelectedId || null);
+        const SelectedUnit = units.find((unit) => unit.id === SelectedId || null); {/* searches for selected unit, because only the id is stored in state not the full object*/}
         const canConfirm = Boolean(SelectedUnit) && usageMinutes!=='';
 
+        {/*handleConfirm is a function that handles the booking confirmation button click. it basically saves the id of the confirmed resource to state so that the UI can briefly show booked*/}
         const handleConfirm = () => {
         
         // Safety check: if nothing is selected, there's nothing to confirm.
@@ -96,7 +74,7 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
             onBook(selectedUnit);
         }*/
 
-        // Wait 900ms (so the user can see the "Booked" confirmation),
+        // Wait 2000ms (so the user can see the "Booked" confirmation),
         // then reset everything back to its starting state.
         setTimeout(() => {
             setSelectedId(null);
@@ -137,7 +115,7 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
                     <li key={unit.id}>
                         <button
                         className={buttonClass}
-                        onClick={() => handleSelect(unit)}
+                        onClick={() => HandleSelect(unit)}
                         disabled={!unit.available}
                         >
                         <span className="rbd-unit-label">{unit.label}</span>
@@ -170,7 +148,7 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
                                     <select id="usage-duration" value={usageMinutes} onChange={(e) => setUsageMinutes(e.target.value)}>
                                         <option value="" disabled> Select duration </option>
                                         {DurationOptions.map((minutes) => (
-                                            <option key={minutes} value={minutes}> {formatDuration(minutes)} </option>
+                                            <option key={minutes} value={minutes}> {FormatDuration(minutes)} </option>
                                         ))}
                                     </select>
                                 </div>
