@@ -1,7 +1,10 @@
 import './index.css'
 import DashboardHeader from './DashboardHeader.jsx'
 import AdminPanel from './AdminPanel.jsx'
-export default function AdminPage({user={name:"Admin"}}) {
+
+{/*This component renders the contents of the admin page*/}
+
+export default function AdminPage() {
     return(
         <>
         <DashboardHeader user={{name:"Admin User", floor:"Building Manager"}} admin={true}/>
