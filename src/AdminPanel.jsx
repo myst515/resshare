@@ -23,7 +23,11 @@ function StatusShape({status}){
 {/* AdminPanel is a component that renders the Admin panel on the admin page. The admin panel is basically a table that shows the state of all the resources in the building and 
   allows an admin to add, remove, suspend and activate a resource*/}
 export default function AdminPanel() {
-    const [resources, setResources] = React.useState(myResources)
+    const [resources, setResources] = React.useState(myResources);
+    const [formOpen, setFormOpen] = React.useState(false);
+    const [newResource, setNewResource] = React.useState({
+      name:"", type:"Washing Machine", location:"", status:"Active"
+    })
 
     {/*ToggleStatus is a local function that toggles the status of the Activate/Suspend button on the admin panel it takes in the id of the selected resource as input*/}
     function ToggleStatus(id){
@@ -50,9 +54,66 @@ export default function AdminPanel() {
         );
     }
 
+    {/*AddResource is a function that handles the AddResource button click. It adds a new object at the end of the copied array and saves the copied array in state. It is to just mimick the add behavior once full integration is complete */}
+    function AddResource(){
+      if (!newResource.name.trim() || !newResource.location.trim()) return;
+
+      const nextId = resources.length > 0
+      ? Math.max(...resources.map((r) => r.id)) + 1
+      : 1;
+
+      setResources((prev) => [...prev, { id: nextId, ...newResource }]);
+
+        // reset the form and close it
+      setNewResource({ name: "", type: "Washing Machine", location: "", status: "Active" });
+      setFormOpen(false);
+  
+    }
+
   return (
     <div className="min-h-screen p-8">
+      <div className="flex justify-between items-center mb-4">
       <h1 className="text-2xl mb-4">Resource Directory</h1>
+
+      <button
+          onClick={() => setFormOpen((v) => !v)}
+          className="bg-teal-600 text-white text-sm font-semibold px-4 py-2 rounded-lg"
+        >
+          Add Resource
+        </button>
+      </div>
+
+      {formOpen && (
+        <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4 flex gap-2">
+          <input
+            className="border border-gray-200 rounded-md px-3 py-2 text-sm flex-1"
+            placeholder="Resource name"
+            value={newResource.name}
+            onChange={(e) => setNewResource({ ...newResource, name: e.target.value })}
+          />
+          <select
+            className="border border-gray-200 rounded-md px-3 py-2 text-sm"
+            value={newResource.type}
+            onChange={(e) => setNewResource({ ...newResource, type: e.target.value })}
+          >
+            <option>Washing Machine</option>
+            <option>Kitchen Stove</option>
+            <option>Clothes Dryer</option>
+          </select>
+          <input
+            className="border border-gray-200 rounded-md px-3 py-2 text-sm flex-1"
+            placeholder="Location"
+            value={newResource.location}
+            onChange={(e) => setNewResource({ ...newResource, location: e.target.value })}
+          />
+          <button
+            onClick={AddResource}
+            className="bg-teal-600 text-white text-sm font-semibold px-4 py-2 rounded-lg"
+          >
+            Save
+          </button>
+        </div>
+      )}
 
       <table className="w-full text-sm bg-white border border-gray-200 rounded-xl overflow-hidden">
         <thead>
