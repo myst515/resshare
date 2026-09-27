@@ -1,5 +1,6 @@
 import "./index.css"
 
+{/*ResourceCard is a reusable component that renders resource cards on the Dashboard. It takes in title, acailability, total, link and handleDropDown as props to ensure that each Resource card is unique */}
 export default function ResourceCard({ title, availability, total, link, handleDropDown}) {
 
     return (
