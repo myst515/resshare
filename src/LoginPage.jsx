@@ -34,31 +34,33 @@ export default function LoginPage(Funcs) {
 
     return(
         <>
-        <Header />
-        <div className="auth-container">
-            <div className="LoginForm">
-                <h1>Welcome to ResShare</h1>
-                <p>Join now to monitor the real-time availability of shared resources in your building</p>
+        <div className="login-page">
+            <Header />
+            <div className="auth-container">
+                <div className="LoginForm">
+                    <h1>Welcome to ResShare</h1>
+                    <p>Join now to monitor the real-time availability of shared resources in your building</p>
 
-                <form action={submit}>
-                    <label>username: 
-                        <input type="text" name="username" required/>
-                    </label>
+                    <form action={submit}>
+                        <label>username: 
+                            <input type="text" name="username" required/>
+                        </label>
+                        <br />
+                        <br />
+                        <label>password:
+                            <input type="password" name="password" required/>
+                        </label>
+                        <br />
+                        <br />
+                        <button className="button" type="submit"> Login </button>
+                    </form>
                     <br />
-                    <br />
-                    <label>password:
-                        <input type="password" name="password" required/>
-                    </label>
-                    <br />
-                    <br />
-                    <button className="button" type="submit"> Login </button>
-                </form>
-                <br />
-            <p>Don't have an account? Create one below</p>
-            <button padding="10px" width="100%" border="none" onClick={CreateHandler}> Create Account </button>
+                <p>Don't have an account? Create one below</p>
+                <button className="cursor-pointer hover:opacity-40" padding="10px" width="100%" border="none" onClick={CreateHandler}> Create Account </button>
+                </div>
+
+                {showCreate? <RegistrationForm createHandler={CreateHandler}/> : null} {/*This line uses a ternary operator to conditionally render the RegistrationForm component based on the value of showCreate. If showCreate is true, the RegistrationForm component is rendered and passed wwith the CreateHandler function as a prop named createHandler. If showCreate is false, null is rendered, meaning nothing will be displayed in that space. This allows for dynamic rendering of the RegistrationForm component based on user interaction.*/}
             </div>
-
-            {showCreate? <RegistrationForm createHandler={CreateHandler}/> : null} {/*This line uses a ternary operator to conditionally render the RegistrationForm component based on the value of showCreate. If showCreate is true, the RegistrationForm component is rendered and passed wwith the CreateHandler function as a prop named createHandler. If showCreate is false, null is rendered, meaning nothing will be displayed in that space. This allows for dynamic rendering of the RegistrationForm component based on user interaction.*/}
         </div>
         </>
     )
