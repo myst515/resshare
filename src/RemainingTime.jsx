@@ -1,5 +1,6 @@
 import React from "react";
 
+{/*RemainingTime is a component that renders the remaining time of a resource on the resource cards. It takes in the estimated endTime of resource use as input */}
 export default function RemainingTime({endTime}){
     const [remaining, setRemaining] = React.useState(() => endTime - Date.now());
 
