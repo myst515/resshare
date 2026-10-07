@@ -1,19 +1,21 @@
 /**
  * userRepository.js
- * Handles all database operations for the users table:
- * creating users, looking them up, and verifying login credentials.
+ * Handles all database operations for the users table: creating accounts,
+ * finding users by email, checking login credentials, and changing roles.
  */
 const pool = require('../db');
 const passwordHasher = require('../passwordHasher');
 
 /**
- * Creates a new user with a hashed password.
+ * Creates a new user. The password is hashed before it is saved, and the
+ * hash is never returned. Rejects if the email is already registered or the
+ * role is not 'resident' or 'admin'.
  * @param {string} name
- * @param {string} email
- * @param {string} password - plain-text password, will be hashed before storing
- * @param {string} [role='resident'] - 'resident' or 'admin'
- * @param {number|null} [floorNumber=null] - which floor the user lives on
- * @returns {Promise<object>} the created user (excluding password_hash)
+ * @param {string} email must be unique
+ * @param {string} password plain-text password (hashed before storage)
+ * @param {'resident'|'admin'} [role='resident']
+ * @param {number|null} [floorNumber=null]
+ * @returns {Promise<object>} the created user (id, name, email, role, floor_number)
  */
 async function createUser(name, email, password, role = 'resident', floorNumber = null) {
   const passwordHash = await passwordHasher.hash(password);
@@ -26,9 +28,10 @@ async function createUser(name, email, password, role = 'resident', floorNumber 
 }
 
 /**
- * Looks up a user by email.
+ * Looks up a user by email. Includes password_hash because verifyCredentials
+ * needs it, so do not send this result to the front end.
  * @param {string} email
- * @returns {Promise<object|null>} the full user row (including password_hash), or null if not found
+ * @returns {Promise<object|null>} the full user row, or null if not found
  */
 async function findByEmail(email) {
   const result = await pool.query(`SELECT * FROM users WHERE email = $1`, [email]);
@@ -36,22 +39,27 @@ async function findByEmail(email) {
 }
 
 /**
- * Verifies a login attempt against the stored password hash.
+ * The login check: finds the user by email, then compares the typed password
+ * against the stored hash.
  * @param {string} email
- * @param {string} password - plain-text password supplied at login
- * @returns {Promise<object|null>} the user row if credentials match, otherwise null
+ * @param {string} password plain-text password the user typed
+ * @returns {Promise<object|null>} the user WITHOUT password_hash if the
+ *   credentials are correct, otherwise null (unknown email or wrong password)
  */
 async function verifyCredentials(email, password) {
   const user = await findByEmail(email);
   if (!user) return null;
   const match = await passwordHasher.verify(password, user.password_hash);
-  return match ? user : null;
+  if (!match) return null;
+  const { password_hash, ...safeUser } = user;
+  return safeUser;
 }
 
 /**
- * Updates a user's role (e.g. promoting a resident to admin).
+ * Changes a user's role. Rejects if the role is not 'resident' or 'admin'.
+ * Does nothing if the user id does not exist.
  * @param {number} userId
- * @param {string} role
+ * @param {'resident'|'admin'} role
  * @returns {Promise<void>}
  */
 async function updateRole(userId, role) {
