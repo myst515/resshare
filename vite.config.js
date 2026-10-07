@@ -1,15 +1,11 @@
-import react, { reactCompilerPreset } from '@vitejs/plugin-react'
-import babel from '@rolldown/plugin-babel'
 import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
-    babel({ presets: [reactCompilerPreset()] }), tailwindcss()
+    tailwindcss()
   ],
-  server: {
-    host: '0.0.0.0'
-  }
+  // Removed server: { host: '0.0.0.0' }
 })

@@ -8,7 +8,7 @@ import Header
     from './DashboardHeader.jsx'
 
 import WashingMachineImage
-    from './assets/Washing machines.jpg'
+    from './assets/Washing_machines.jpg'
 
 import DryerImage
     from './assets/Dryer.jpg'

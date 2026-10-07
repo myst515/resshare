@@ -16,6 +16,8 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.2",
+    "@vitejs/plugin-react-swc": "^4.3.3",
     "jest": "^30.5.1",
     "vite": "^8.3.3"
   },
