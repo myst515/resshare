@@ -1,11 +1,14 @@
 import './index.css'
 import React from 'react'
 
-import ResourceCard from './ResourceCard.jsx'
-import Header from './DashboardHeader.jsx'
+import ResourceCard
+    from './ResourceCard.jsx'
+
+import Header
+    from './DashboardHeader.jsx'
 
 import WashingMachineImage
-    from './assets/Washing_machines.jpg'
+    from './assets/Washing machines.jpg'
 
 import DryerImage
     from './assets/Dryer.jpg'
@@ -54,6 +57,114 @@ export default function DashboardPage({
         React.useState(false);
 
 
+    /*
+     * Resource unit information used by the dashboard.
+     *
+     * Each unit stores its identifier, display label and
+     * current availability.
+     */
+    const Dryers = [
+        {
+            id: 1,
+            label: "Dryer 1",
+            available: true
+        },
+
+        {
+            id: 2,
+            label: "Dryer 2",
+            available: true
+        },
+
+        {
+            id: 3,
+            label: "Dryer 3",
+            available: false,
+            reservedUntil:
+                "2026-09-26T17:30:00.000"
+        },
+
+        {
+            id: 4,
+            label: "Dryer 4",
+            available: false,
+            reservedUntil:
+                "2026-09-26T17:30:00.000"
+        }
+    ];
+
+
+    const Stoves = [
+        {
+            id: 1,
+            label: "Stove 1",
+            available: true
+        },
+
+        {
+            id: 2,
+            label: "Stove 2",
+            available: true
+        },
+
+        {
+            id: 3,
+            label: "Stove 3",
+            available: false
+        },
+
+        {
+            id: 4,
+            label: "Stove 4",
+            available: false
+        },
+
+        {
+            id: 5,
+            label: "Stove 5",
+            available: false
+        },
+
+        {
+            id: 6,
+            label: "Stove 6",
+            available: false
+        }
+    ];
+
+
+    const WashingMachines = [
+        {
+            id: 1,
+            label: "Washer 1",
+            available: false
+        },
+
+        {
+            id: 2,
+            label: "Washer 2",
+            available: true
+        },
+
+        {
+            id: 3,
+            label: "Washer 3",
+            available: false
+        },
+
+        {
+            id: 4,
+            label: "Washer 4",
+            available: false
+        }
+    ];
+
+
+    /*
+     * The handleDropDown... functions handle the dropdown
+     * of each individual resource card, so that one dropdown
+     * doesn't cause all the resource cards to dropdown.
+     */
     function handleDropDownWasher(){
 
         setDropDownWasher(
@@ -78,6 +189,35 @@ export default function DashboardPage({
     }
 
 
+    /*
+     * checkAvailability iterates over the units object array
+     * to determine the number of available resources so that
+     * the availability can be displayed correctly.
+     */
+    function checkAvailability(units = []){
+
+        let countAvailable = 0;
+
+
+        for(
+            let x = 0;
+            x < units.length;
+            x++
+        ){
+
+            if(
+                units[x].available === true
+            ){
+
+                countAvailable++;
+            }
+        }
+
+
+        return countAvailable;
+    }
+
+
     return(
 
         <>
@@ -98,6 +238,7 @@ export default function DashboardPage({
 
 
                     <div className="resources-section">
+
 
                         <h1>
                             Hello, {user.name}
@@ -127,109 +268,123 @@ export default function DashboardPage({
 
                         <div className="resource-grid">
 
+
                             <ResourceCard
+
                                 title="Washing Machines"
-                                availability={2}
-                                total={4}
-                                link={WashingMachineImage}
+
+                                availability={
+                                    checkAvailability(
+                                        WashingMachines
+                                    )
+                                }
+
+                                total={
+                                    WashingMachines.length
+                                }
+
+                                link={
+                                    WashingMachineImage
+                                }
+
                                 handleDropDown={
                                     handleDropDownWasher
                                 }
+
                             />
 
 
                             <ResourceCard
+
                                 title="Dryers"
-                                availability={1}
-                                total={3}
-                                link={DryerImage}
+
+                                availability={
+                                    checkAvailability(
+                                        Dryers
+                                    )
+                                }
+
+                                total={
+                                    Dryers.length
+                                }
+
+                                link={
+                                    DryerImage
+                                }
+
                                 handleDropDown={
                                     handleDropDownDryer
                                 }
+
                             />
 
 
                             <ResourceCard
+
                                 title="Stoves"
-                                availability={0}
-                                total={2}
-                                link={StoveImage}
+
+                                availability={
+                                    checkAvailability(
+                                        Stoves
+                                    )
+                                }
+
+                                total={
+                                    Stoves.length
+                                }
+
+                                link={
+                                    StoveImage
+                                }
+
                                 handleDropDown={
                                     handleDropDownStove
                                 }
+
                             />
 
                         </div>
 
 
-                        <div className='resource-grid'>
+                        <div className="resource-grid">
+
 
                             <BookDropDown
+
+                                units={
+                                    WashingMachines
+                                }
+
                                 isOpen={
                                     dropDownWasher
                                 }
+
                             />
 
 
                             <BookDropDown
 
-                                units={[
-                                    {
-                                        id: 1,
-                                        label: "Dryer 1",
-                                        available: true
-                                    },
-
-                                    {
-                                        id: 2,
-                                        label: "Dryer 2",
-                                        available: true
-                                    },
-
-                                    {
-                                        id: 3,
-                                        label: "Dryer 3",
-                                        available: false
-                                    },
-
-                                    {
-                                        id: 4,
-                                        label: "Dryer 4",
-                                        available: false
-                                    }
-                                ]}
+                                units={
+                                    Dryers
+                                }
 
                                 isOpen={
                                     dropDownDryer
                                 }
+
                             />
 
 
                             <BookDropDown
 
-                                units={[
-                                    {
-                                        id: 1,
-                                        label: "Stove 1",
-                                        available: true
-                                    },
-
-                                    {
-                                        id: 2,
-                                        label: "Stove 2",
-                                        available: true
-                                    },
-
-                                    {
-                                        id: 3,
-                                        label: "Stove 3",
-                                        available: false
-                                    }
-                                ]}
+                                units={
+                                    Stoves
+                                }
 
                                 isOpen={
                                     dropDownStove
                                 }
+
                             />
 
                         </div>
@@ -238,6 +393,7 @@ export default function DashboardPage({
 
 
                     <div className="activity-section">
+
 
                         <h2>
                             Your Total Reservations:
@@ -256,6 +412,7 @@ export default function DashboardPage({
 
 
                         <br />
+
                         <br />
 
 
@@ -265,6 +422,7 @@ export default function DashboardPage({
 
 
                         <div className="building-news">
+
 
                             <h3>
                                 🔔 Building News
@@ -285,6 +443,7 @@ export default function DashboardPage({
                                 Please book other available
                                 Dryers during this time.
                             </p>
+
 
                         </div>
 

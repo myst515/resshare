@@ -1,12 +1,17 @@
 import './index.css'
 
-import Header from './Header.jsx'
+import Header
+    from './Header.jsx'
 
-import { useNavigate } from 'react-router'
+import { useNavigate }
+    from 'react-router'
 
-import React from 'react'
+import React
+    from 'react'
 
-import RegistrationForm from './RegistrationForm.jsx'
+import RegistrationForm
+    from './RegistrationForm.jsx'
+
 
 /*
  * NEW INTEGRATION:
@@ -26,17 +31,22 @@ import RegistrationForm from './RegistrationForm.jsx'
  *     ↓
  * PostgreSQL
  */
-import ApiService from './services/ApiService.js'
+import ApiService
+    from './services/ApiService.js'
 
 
 export default function LoginPage(Funcs) {
+
 
     /*
      * This creates a showCreate state variable that is false
      * by default, setShowCreate is a function used to update
      * the value of showCreate.
      */
-    const [showCreate, setShowCreate] =
+    const [
+        showCreate,
+        setShowCreate
+    ] =
         React.useState(false)
 
 
@@ -58,7 +68,8 @@ export default function LoginPage(Funcs) {
      * useNavigate allows the application to change the
      * current page after a successful login.
      */
-    let navigate = useNavigate()
+    let navigate =
+        useNavigate()
 
 
     /*
@@ -73,6 +84,7 @@ export default function LoginPage(Funcs) {
      */
     async function submit(formData) {
 
+
         /*
          * Retrieve the login information entered by the user.
          *
@@ -81,6 +93,7 @@ export default function LoginPage(Funcs) {
          */
         const email =
             formData.get('username')
+
 
         const password =
             formData.get('password')
@@ -95,6 +108,7 @@ export default function LoginPage(Funcs) {
 
 
         try {
+
 
             /*
              * NEW INTEGRATION:
@@ -173,8 +187,14 @@ export default function LoginPage(Funcs) {
              * This allows the existing routing logic in
              * App.jsx to recognise that the user is logged in.
              */
-            if (Funcs && Funcs.authFunc) {
-                Funcs.authFunc(true)
+            if (
+                Funcs &&
+                Funcs.authFunc
+            ) {
+
+                Funcs.authFunc(
+                    true
+                )
             }
 
 
@@ -196,7 +216,11 @@ export default function LoginPage(Funcs) {
              *     ↓
              * LoginPage
              */
-            if (Funcs && Funcs.adminFunc) {
+            if (
+                Funcs &&
+                Funcs.adminFunc
+            ) {
+
                 Funcs.adminFunc(
                     result.user.role === 'admin'
                 )
@@ -207,18 +231,25 @@ export default function LoginPage(Funcs) {
              * Direct the authenticated user to the
              * appropriate page based on their role.
              */
-            if (result.user.role === 'admin') {
+            if (
+                result.user.role === 'admin'
+            ) {
 
-                navigate('/AdminPage')
+                navigate(
+                    '/AdminPage'
+                )
 
             } else {
 
-                navigate('/DashboardPage')
+                navigate(
+                    '/DashboardPage'
+                )
 
             }
 
 
         } catch (error) {
+
 
             /*
              * If the backend rejects the credentials,
@@ -242,7 +273,9 @@ export default function LoginPage(Funcs) {
 
 
     return(
+
         <>
+
             {/*
              * The login-page wrapper contains the Header and
              * the login form so that the existing background
@@ -252,11 +285,15 @@ export default function LoginPage(Funcs) {
              */}
             <div className="login-page">
 
+
                 <Header />
+
 
                 <div className="auth-container">
 
+
                     <div className="LoginForm">
+
 
                         <h1>
                             Welcome to ResShare
@@ -281,6 +318,7 @@ export default function LoginPage(Funcs) {
                          * sends the login details to the backend.
                          */}
                         <form action={submit}>
+
 
                             <label>
                                 username:
@@ -321,6 +359,7 @@ export default function LoginPage(Funcs) {
                                 Login
                             </button>
 
+
                         </form>
 
 
@@ -334,13 +373,17 @@ export default function LoginPage(Funcs) {
 
 
                         <button
+                            className="cursor-pointer hover:opacity-40"
                             padding="10px"
                             width="100%"
                             border="none"
-                            onClick={CreateHandler}
+                            onClick={
+                                CreateHandler
+                            }
                         >
                             Create Account
                         </button>
+
 
                     </div>
 
@@ -369,9 +412,11 @@ export default function LoginPage(Funcs) {
                             : null
                     }
 
+
                 </div>
 
             </div>
+
         </>
     )
 }
