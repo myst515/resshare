@@ -1,8 +1,5 @@
 -- ResShare Database Schema
--- Stores residents and administrators.
--- floor_number is nullable since not all roles (e.g. admin) are tied to a floor.
--- Added after initial schema creation, per team request (RES tickets), to support
--- future dashboard filtering so residents only see resources relevant to their floor.
+
 CREATE TABLE users (
     id              SERIAL PRIMARY KEY,
     name            VARCHAR(100) NOT NULL,
@@ -12,9 +9,6 @@ CREATE TABLE users (
                     CHECK (role IN ('resident', 'admin')),
     floor_number    INTEGER
 );
-
--- Stores shared facilities (washing machines, stoves, etc).
--- floor_number is required, since every physical resource is on some floor.
 
 CREATE TABLE facilities (
     id              SERIAL PRIMARY KEY,
@@ -26,8 +20,6 @@ CREATE TABLE facilities (
                     CHECK (status IN ('available', 'in_use', 'suspended')),
     last_confirmed  TIMESTAMP    NOT NULL DEFAULT NOW()
 );
-
--- Records completed/active usage sessions for reporting and trend analysis.
 
 CREATE TABLE usage_logs (
     id              SERIAL PRIMARY KEY,

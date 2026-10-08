@@ -11,16 +11,15 @@ const passwordHasher = require('../passwordHasher');
 
 
 /**
- * Creates a new user in the database.
- *
- * The password is hashed before it is stored.
- *
- * @param {string} name - User's name.
- * @param {string} email - User's email address.
- * @param {string} password - Plain-text password supplied during registration.
- * @param {string} role - User role, normally 'resident' or 'admin'.
- * @param {number|null} floorNumber - Floor associated with the user.
- * @returns {Object} The newly created user.
+ * Creates a new user. The password is hashed before it is saved, and the
+ * hash is never returned. Rejects if the email is already registered or the
+ * role is not 'resident' or 'admin'.
+ * @param {string} name
+ * @param {string} email must be unique
+ * @param {string} password plain-text password (hashed before storage)
+ * @param {'resident'|'admin'} [role='resident']
+ * @param {number|null} [floorNumber=null]
+ * @returns {Promise<object>} the created user (id, name, email, role, floor_number)
  */
 async function createUser(
     name,
@@ -53,13 +52,10 @@ async function createUser(
 
 
 /**
- * Finds a user using their email address.
- *
- * This is used during login to retrieve the user's
- * stored password hash and account information.
- *
- * @param {string} email - Email address to search for.
- * @returns {Object|null} User record or null if not found.
+ * Looks up a user by email. Includes password_hash because verifyCredentials
+ * needs it, so do not send this result to the front end.
+ * @param {string} email
+ * @returns {Promise<object|null>} the full user row, or null if not found
  */
 async function findByEmail(email) {
 
@@ -109,30 +105,21 @@ async function findById(id) {
  * @returns {Object|null} User if credentials are valid, otherwise null.
  */
 async function verifyCredentials(email, password) {
-
-    const user = await findByEmail(email);
-
-    // No user with this email exists.
-    if (!user) {
-        return null;
-    }
-
-    // Compare the supplied password with the stored hash.
-    const match =
-        await passwordHasher.verify(
-            password,
-            user.password_hash
-        );
-
-    return match ? user : null;
+  const user = await findByEmail(email);
+  if (!user) return null;
+  const match = await passwordHasher.verify(password, user.password_hash);
+  if (!match) return null;
+  const { password_hash, ...safeUser } = user;
+  return safeUser;
 }
 
 
 /**
- * Updates a user's role.
- *
- * @param {number} userId - ID of the user.
- * @param {string} role - New role.
+ * Changes a user's role. Rejects if the role is not 'resident' or 'admin'.
+ * Does nothing if the user id does not exist.
+ * @param {number} userId
+ * @param {'resident'|'admin'} role
+ * @returns {Promise<void>}
  */
 async function updateRole(userId, role) {
 
