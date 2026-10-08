@@ -1,5 +1,6 @@
 import './index.css';
 import React from 'react';
+import ApiService from './services/ApiService.js';
 
 {/*This is a registration form component which renders a form for the user to fill in their details. 
         The form contains fields for the user's name, surname, email, student number, floor number, password and confirm password. 
@@ -13,18 +14,47 @@ export default function RegistrationForm(par) {
     const [password, setPassword] = React.useState(''); {/*This creates a password state variable that is an empty string by default, setPassword is a function used to update the value of the password state variable.*/}
     const [confirmPassword, setConfirmPassword] = React.useState('');
     
-    function submit(e) {
+    async function submit(e) {
         console.log(e.get('Name'));
         console.log(e.get('Surname'));
         console.log(e.get('Email'));
         console.log(e.get('StudentNo'));
         console.log(e.get('FloorNo'));
         console.log(e.get('Password'));
+
         if (password !== confirmPassword) {
             alert('Passwords do not match');
+            return;
         }
-        par.createHandler();
-    return;
+
+        /*
+         * BACKEND INTEGRATION:
+         * Send the registered details to the PostgreSQL database via ApiService.
+         */
+        try {
+            const fullName = `${e.get('Name')} ${e.get('Surname')}`.trim();
+            const email = e.get('Email');
+            const floorNo = parseInt(e.get('FloorNo'), 10);
+
+            await ApiService.post('/auth/register', {
+                name: fullName,
+                email: email,
+                password: password,
+                role: 'resident',
+                floorNumber: floorNo
+            });
+
+            alert('Account created successfully! You can now log in.');
+
+            // Close the registration form
+            if (par && par.createHandler) {
+                par.createHandler();
+            }
+
+        } catch (error) {
+            console.error('Registration failed:', error);
+            alert('Registration failed: ' + error.message);
+        }
     }
 
     return(
