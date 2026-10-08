@@ -226,6 +226,8 @@ export default function LoginPage(Funcs) {
                 )
             }
 
+            if (Funcs.userFunc)  Funcs.userFunc(result.user);
+
 
             /*
              * Direct the authenticated user to the

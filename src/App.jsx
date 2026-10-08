@@ -1,19 +1,10 @@
-import './index.css'
-
-import { Navigate } from 'react-router'
-
-import {
-    BrowserRouter,
-    Routes,
-    Route
-} from 'react-router'
-
-import LoginPage from './LoginPage.jsx'
-import DashboardPage from './DashboardPage.jsx'
-import AdminPage from './AdminPage.jsx'
-import ProtectedRoute from './ProtectedRoute.jsx'
-
-import react from 'react'
+import './index.css';
+import { Navigate, BrowserRouter, Routes, Route } from 'react-router';
+import LoginPage from './LoginPage.jsx';
+import DashboardPage from './DashboardPage.jsx';
+import AdminPage from './AdminPage.jsx';
+import ProtectedRoute from './ProtectedRoute.jsx';
+import React, { useState } from 'react';
 
 
 /*
@@ -101,7 +92,7 @@ export default function App() {
         isAuthenticated,
         setIsAuthenticated
     ] =
-        react.useState(
+        useState(
             Boolean(
                 storedToken &&
                 parsedUser
@@ -121,39 +112,22 @@ export default function App() {
         isAdmin,
         setIsAdmin
     ] =
-        react.useState(
+        useState(
             parsedUser?.role === 'admin'
         )
 
 
     /*
-     * Retrieve the current user from localStorage.
-     *
-     * This information is passed to DashboardPage so that
-     * the dashboard can display the actual logged-in user's
-     * information instead of a hard-coded user.
+     * FIX: Store current user in React state so when a new user logs in,
+     * App re-renders and passes the new user to DashboardPage immediately.
      */
-    const currentUser =
-        localStorage.getItem('user')
 
-
-    let user = null
-
-
-    try {
-
-        if (currentUser) {
-
-            user =
-                JSON.parse(currentUser)
-
-        }
-
-    } catch (error) {
-
-        user = null
-    }
-
+    const [
+        user, setUser
+    ] = 
+       useState(
+        parsedUser
+      )
 
     return(
 
@@ -179,6 +153,9 @@ export default function App() {
                             adminFunc={
                                 setIsAdmin
                             }
+                            userFunc={
+                                setUser
+                            }    
                         />
                     }
                 />
