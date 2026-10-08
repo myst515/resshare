@@ -28,12 +28,9 @@ import BookDropDown
  * The authenticated user is passed into this page from App.jsx.
  * The user information comes from the backend after login.
  */
-export default function DashboardPage({
-    user = {
-        name: "Kagiso",
-        floor_number: 1
-    }
-}) {
+export default function DashboardPage({user}) {
+
+    const activeUser = user || JSON.parse(localStorage.getItem('user') || '{}');
 
 
     const [
@@ -229,7 +226,7 @@ export default function DashboardPage({
              * header so that the header can display the
              * actual user's name and floor.
              */}
-            <Header user={user} />
+            <Header user={activeUser} />
 
 
             <div className="BodyDashboard">
@@ -241,7 +238,7 @@ export default function DashboardPage({
 
 
                         <h1>
-                            Hello, {user.name}
+                            Hello, {activeUser.name}
                         </h1>
 
 
