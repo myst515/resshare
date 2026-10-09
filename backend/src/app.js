@@ -11,6 +11,9 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 
+const sessionRoutes = require('./routes/sessionRoutes');
+app.use('/api', sessionRoutes);
+
 app.get('/', (req, res) => {
   res.send('ResShare backend is running');
 });
