@@ -1,16 +1,17 @@
 /**
  * db.js
- * Creates and exports a single shared PostgreSQL connection pool
- * used by all repository modules to query the resshare database.
+ * Creates and exports a PostgreSQL connection pool configured
+ * for both local and Supabase cloud database environments.
  */
+require('dotenv').config();
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  host: 'localhost',
-  port: 5432,
-  user: 'postgres',
-  password: 'TshepisoBeautyMabelane37@', // TODO: move to environment variable before final submission
-  database: 'resshare',
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    // Required by Supabase for secure cloud connections
+    rejectUnauthorized: false
+  }
 });
 
 module.exports = pool;
