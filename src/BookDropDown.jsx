@@ -40,6 +40,9 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
         const [SelectedId, setSelectedId] = useState(null);
         const [ConfirmedId, setConfirmedId] = useState(null);
         const [usageMinutes, setUsageMinutes] = useState('');
+        const [isBooking, setIsBooking] = useState(false);
+        const [bookingError, setBookingError] = useState('');
+        const [bookingSuccess, setBookingSuccess] = useState('');
 
         {/*HandleSelect is a function that handles the selection of resources so that unavailable resources can't be selected, and it stores the selected resource's id to state. */}
         const HandleSelect = (unit) => {
@@ -57,33 +60,41 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
         const canConfirm = Boolean(SelectedUnit) && usageMinutes!=='';
 
         {/*handleConfirm is a function that handles the booking confirmation button click. it basically saves the id of the confirmed resource to state so that the UI can briefly show booked*/}
-        const handleConfirm = () => {
+        const handleConfirm = async () => {
         
         // Safety check: if nothing is selected, there's nothing to confirm.
-        if (!canConfirm) {
-            return;
-        }
+        const response = await fetch('/api/sessions', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    facilityId: SelectedUnit.id,
+    duration: Number(usageMinutes)
+  })
+});
 
-        // Mark this unit as confirmed so the UI can show "Booked".
-        setConfirmedId(SelectedUnit.id);
-        
+// Read the response as text first
+const responseText = await response.text();
 
-        // Let the parent component know a booking happened,
-        // but only if an onBook function was actually provided.
-        /*if (onBook) {
-            onBook(selectedUnit);
-        }*/
+console.log('Status:', response.status);
+console.log('Response:', responseText);
 
-        // Wait 2000ms (so the user can see the "Booked" confirmation),
-        // then reset everything back to its starting state.
-        setTimeout(() => {
-            setSelectedId(null);
-            setConfirmedId(null);
+// Try parsing the response as JSON
+let data = {};
 
-            if (onClose) {
-            onClose();
-            }
-        }, 2000);
+try {
+  data = responseText ? JSON.parse(responseText) : {};
+} catch {
+  throw new Error('The backend returned an invalid JSON response.');
+}
+
+if (!response.ok) {
+  throw new Error(data.message || 'Failed to book facility.');
+}
+
+setConfirmedId(SelectedUnit.id);
+setBookingSuccess('Booking confirmed successfully!');
         };
 
 
@@ -154,9 +165,11 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
                                 </div>
                                 : null}
 
-                <button className="rbd-confirm-btn" disabled={!SelectedId} onClick={handleConfirm}>
-                    {SelectedId? `Confirm booking — ${units.find((u) => u.id === SelectedId)?.label}`: 'Select a unit above'}
+                <button className="rbd-confirm-btn" disabled={!canConfirm || isBooking} onClick={handleConfirm}>
+                    {isBooking? 'Booking...': SelectedUnit? `Confirm booking — ${SelectedUnit.label}` : 'Select a unit above'}
                 </button>
+                {bookingError && (<p role="alert">{bookingError}</p>)}
+                {bookingSuccess && (<p role="status">{bookingSuccess}</p>)}
             </div>
 
       </div>
