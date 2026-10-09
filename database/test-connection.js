@@ -1,6 +1,6 @@
-const { createUser, verifyCredentials } = require('./repositories/userRepository');
-const { getAllFacilities, addFacility } = require('./repositories/facilityRepository');
-const { insertLog, getLogsByFacility, getUsageTrends } = require('./repositories/usageLogRepository');
+const { createUser, verifyCredentials } = require('./repos/userRepository');
+const { getAllFacilities, addFacility } = require('./repos/facilityRepository');
+const { insertLog, getLogsByFacility, getUsageTrends } = require('./repos/usageLogRepository');
 
 async function main() {
   console.log('Testing user creation...');
