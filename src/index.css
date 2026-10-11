@@ -613,3 +613,45 @@ input[type="number"] {
     outline: none;
     border-color: #2563eb;
 }
+
+.rbd-unit-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rbd-unit-row .rbd-unit {
+    flex: 1;
+    /* unit button takes the remaining width */
+}
+
+.rbd-notify-btn {
+    flex-shrink: 0;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #008f83;
+    font-weight: 600;
+}
+
+.rbd-notify-btn:hover {
+    opacity: 0.6;
+}
+
+.rbd-toasts {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 50;
+}
+
+.rbd-toast {
+    background: #166534;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 8px;
+}

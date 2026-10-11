@@ -86,7 +86,58 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
         }, 2000);
         };
 
+        //The unit IDs the user asked to be notified about in localStorage
+        const[notifyIds, setNotifyIds] = useState(()=> {
+            try{return JSON.parse(localStorage.getItem('rbd-notify')) || [];}
+            catch{return [];}
+        });
+        
+        //Holds the app popup images
+        const [toasts, setToasts] = useState([]);
 
+        useEffect(() => {
+            try{localStorage.setItem('rbd-notify', JSON.stringify(notifyIds));}
+            catch{}}, [notifyIds]);
+
+        const fireNotification = (unit) => {
+        //In-app toast
+        const toastId= Date.now() + unit.id;
+        setToasts((t)=> [...t, {id: toastId, text: `${unit.label} is now available!`}]);
+        setTimeout(()=> setToasts((t)=> t.filter((x)=> x.id !== toastId)), 6000);
+
+        //Browser notification, but requires user to grant permission
+        if('Notification' in window && Notification.permission === 'granted'){
+            new Notification('Unit Available!', {body: `${unit.label} is now available to book.`})
+        }
+
+        //Stop watching this unit
+        setNotifyIds((ids) => ids.filter((id) => id !== unit.id));
+        };
+
+        // Schedule a timer for every unit the user is watching
+        useEffect(() => {
+        const timers = notifyIds.map((id) => {
+            const unit = units.find((u) => u.id === id);
+            if (!unit) return null;
+            if (unit.available) { fireNotification(unit); return null; }
+            if (!unit.reservedUntil) return null;
+
+            const delay = Math.max(0, new Date(unit.reservedUntil).getTime() - Date.now());
+            return setTimeout(() => fireNotification(unit), delay);
+        });
+        return () => timers.forEach((t) => t && clearTimeout(t));
+        }, [notifyIds, units]);
+
+        const toggleNotify = async (unit) => {
+        if (notifyIds.includes(unit.id)) {
+            setNotifyIds((ids) => ids.filter((id) => id !== unit.id));
+            return;
+        }
+        if ('Notification' in window && Notification.permission === 'default') {
+            await Notification.requestPermission();
+        }
+        setNotifyIds((ids) => [...ids, unit.id]);
+        };
     return(
         <div className="rbd-dropdown" style={{ maxHeight: isOpen ? 'max-content' : '0px' }}>
             <div className="rbd-inner">
@@ -112,7 +163,7 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
                     }
 
                     return (
-                    <li key={unit.id}>
+                    <li key={unit.id} className="rbd-unit-row">
                         <button
                         className={buttonClass}
                         onClick={() => HandleSelect(unit)}
@@ -136,6 +187,8 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
                             </span>
                         )}
                         </button>
+
+                        {unit.available? null: <button className="rbd-notify-btn" type="button" onClick={()=>toggleNotify(unit)}>{notifyIds.includes(unit.id)? 'Notifying': 'Notify'}</button>}
                     </li>
                     );
                 })}
@@ -155,10 +208,9 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
                                 : null}
 
                 <button className="rbd-confirm-btn" disabled={!canConfirm || isBooking} onClick={handleConfirm}>
-                    {isBooking? 'Booking...': SelectedUnit? `Confirm booking — ${SelectedUnit.label}` : 'Select a unit above'}
+                    {SelectedId? `Confirm booking — ${units.find((u) => u.id === SelectedId)?.label}`: 'Select a unit above'}
                 </button>
-                {bookingError && (<p role="alert">{bookingError}</p>)}
-                {bookingSuccess && (<p role="status">{bookingSuccess}</p>)}
+                <div className="rbd-toasts">{toasts.map((t) => <div key={t.id} className="rbd-toast">{t.text}</div>)}</div>
             </div>
 
       </div>
