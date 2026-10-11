@@ -50,16 +50,24 @@ class SessionManager {
    * @returns {UsageSession} The newly created session.
    * @throws {Error} If the facility doesn't exist, is already in use, or the duration is invalid.
    */
-  startSession(facilityId, userId, estimatedDurationMinutes) {
-    const facility = facilities.find(f => f.id === facilityId);
+/**
+   * Starts a new usage session on a facility.
+   * Checks the real PostgreSQL database to verify the facility exists.
+   */
+  async startSession(facilityId, userId, estimatedDurationMinutes) {
+    // 1. Check PostgreSQL to make sure this facility actually exists
+    const facility = await facilityRepository.getFacilityById(facilityId);
     if (!facility) {
       throw new Error('FacilityNotFoundError: no facility with that id');
     }
 
-    if (facility.status === 'IN_USE') {
+    // 2. Check if it's already in use
+    const activeSession = sessions.find(s => s.facilityId === facilityId && s.status === 'ACTIVE');
+    if (activeSession || facility.status === 'in_use') {
       throw new Error('FacilityInUseError: facility is already in use');
     }
 
+    // 3. Validate duration
     if (
       estimatedDurationMinutes < MIN_DURATION_MINUTES ||
       estimatedDurationMinutes > MAX_DURATION_MINUTES
@@ -82,12 +90,9 @@ class SessionManager {
     );
 
     sessions.push(session);
-    facility.status = 'IN_USE';
 
-    // Synchronize status to PostgreSQL in background
-    facilityRepository.updateStatus(facilityId, 'in_use').catch(err => {
-      console.warn('Could not sync in_use status to database:', err.message);
-    });
+    // 4. Update status in PostgreSQL to in_use
+    await facilityRepository.updateStatus(facilityId, 'in_use');
 
     return session;
   }

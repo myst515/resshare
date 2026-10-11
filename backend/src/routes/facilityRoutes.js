@@ -90,7 +90,7 @@ router.post('/book', requireAuth, async (req, res) => {
         }
 
         // 1. Start session in SessionManager
-        const session = sessionManager.startSession(
+        const session = await sessionManager.startSession(
             parseInt(facilityId, 10),
             userId,
             parseInt(durationMinutes, 10)
