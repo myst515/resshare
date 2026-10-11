@@ -111,6 +111,7 @@ export default function DashboardPage({
     /*
      * DYNAMIC INTEGRATION EFFECT:
      * Loads live facilities from PostgreSQL for the resident's floor.
+     * When refreshing, it preserves any active booking timers returned by the backend!
      */
     React.useEffect(() => {
         async function fetchFloorResources() {
@@ -131,6 +132,7 @@ export default function DashboardPage({
                 /*
                  * Helper function to map PostgreSQL facility rows to the unit structure
                  * required by BookDropDown and ResourceCard.
+                 * Includes reservedUntil so timers survive page reloads!
                  */
                 const formatUnits = (rawList) =>
                     rawList.map((f) => ({
@@ -139,7 +141,8 @@ export default function DashboardPage({
                         available: f.status === 'available',
                         status: f.status,
                         location: f.location,
-                        floor_number: f.floor_number
+                        floor_number: f.floor_number,
+                        reservedUntil: f.reservedUntil || null
                     }));
 
                 // 3. Categorize dynamic units by facility type
@@ -170,6 +173,38 @@ export default function DashboardPage({
 
         fetchFloorResources();
     }, [activeUser.floor_number]);
+
+    /*
+     * OPTION A: REAL BACKEND BOOKING INTEGRATION
+     * Sends the booking request to POST /api/facilities/book.
+     * Updates local state with the exact server expiration timestamp.
+     */
+    async function handleBookUnit(unit, durationMinutes) {
+        try {
+            const response = await ApiService.post('/facilities/book', {
+                facilityId: unit.id,
+                durationMinutes: durationMinutes
+            });
+
+            const reservedUntil = response.reservedUntil;
+
+            const updateList = (list) =>
+                list.map((u) =>
+                    u.id === unit.id
+                        ? { ...u, available: false, status: 'in_use', reservedUntil: reservedUntil }
+                        : u
+                );
+
+            // Update UI state immediately with the server's official expiration time
+            setWashingMachines((prev) => updateList(prev));
+            setDryers((prev) => updateList(prev));
+            setStoves((prev) => updateList(prev));
+
+        } catch (err) {
+            console.error('Failed to book facility:', err);
+            alert(`Booking Error: ${err.message}`);
+        }
+    }
 
 
     /*
@@ -371,6 +406,9 @@ export default function DashboardPage({
                         </div>
 
 
+                        {/*
+                         * BookDropDown components receiving onBook={handleBookUnit}
+                         */}
                         <div className="resource-grid">
 
 
@@ -382,6 +420,10 @@ export default function DashboardPage({
 
                                 isOpen={
                                     dropDownWasher
+                                }
+
+                                onBook={
+                                    handleBookUnit
                                 }
 
                             />
@@ -397,6 +439,10 @@ export default function DashboardPage({
                                     dropDownDryer
                                 }
 
+                                onBook={
+                                    handleBookUnit
+                                }
+
                             />
 
 
@@ -408,6 +454,10 @@ export default function DashboardPage({
 
                                 isOpen={
                                     dropDownStove
+                                }
+
+                                onBook={
+                                    handleBookUnit
                                 }
 
                             />
