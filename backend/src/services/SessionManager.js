@@ -1,6 +1,9 @@
 const Facility = require('../models/Facility');
 const UsageSession = require('../models/UsageSession');
 
+const facilityRepository = require('../../../database/repos/facilityRepository');
+const usageLogRepository = require('../../../database/repos/usageLogRepository');
+
 // Global allowed duration range (simplification for now — per-facility-type ranges can be added later)
 const MIN_DURATION_MINUTES = 10;
 const MAX_DURATION_MINUTES = 180;
@@ -47,16 +50,24 @@ class SessionManager {
    * @returns {UsageSession} The newly created session.
    * @throws {Error} If the facility doesn't exist, is already in use, or the duration is invalid.
    */
-  startSession(facilityId, userId, estimatedDurationMinutes) {
-    const facility = facilities.find(f => f.id === facilityId);
+/**
+   * Starts a new usage session on a facility.
+   * Checks the real PostgreSQL database to verify the facility exists.
+   */
+  async startSession(facilityId, userId, estimatedDurationMinutes) {
+    // 1. Check PostgreSQL to make sure this facility actually exists
+    const facility = await facilityRepository.getFacilityById(facilityId);
     if (!facility) {
       throw new Error('FacilityNotFoundError: no facility with that id');
     }
 
-    if (facility.status === 'IN_USE') {
+    // 2. Check if it's already in use
+    const activeSession = sessions.find(s => s.facilityId === facilityId && s.status === 'ACTIVE');
+    if (activeSession || facility.status === 'in_use') {
       throw new Error('FacilityInUseError: facility is already in use');
     }
 
+    // 3. Validate duration
     if (
       estimatedDurationMinutes < MIN_DURATION_MINUTES ||
       estimatedDurationMinutes > MAX_DURATION_MINUTES
@@ -79,35 +90,11 @@ class SessionManager {
     );
 
     sessions.push(session);
-    facility.status = 'IN_USE';
+
+    // 4. Update status in PostgreSQL to in_use
+    await facilityRepository.updateStatus(facilityId, 'in_use');
 
     return session;
-  }
-
-  /**
-   * Manually ends an active usage session, freeing up the facility.
-   * @param {number} sessionId - The session to end.
-   * @returns {boolean} True if the session was successfully ended.
-   * @throws {Error} If the session doesn't exist or is already ended.
-   */
-  endSession(sessionId) {
-    const session = sessions.find(s => s.id === sessionId);
-    if (!session) {
-      throw new Error('SessionNotFoundError: no session with that id');
-    }
-    if (session.status === 'ENDED') {
-      throw new Error('SessionAlreadyEndedError: session has already ended');
-    }
-
-    session.status = 'ENDED';
-    session.actualEndTime = new Date();
-
-    const facility = facilities.find(f => f.id === session.facilityId);
-    if (facility) {
-      facility.status = 'AVAILABLE';
-    }
-
-    return true;
   }
 
   /**
@@ -138,6 +125,59 @@ class SessionManager {
     session.expectedEndTime = new Date(session.startTime.getTime() + newDurationMinutes * 60000);
 
     return session;
+  }
+
+  /**
+   * Returns all currently active sessions.
+   * @returns {UsageSession[]}
+   */
+  getActiveSessions() {
+    return sessions.filter(s => s.status === 'ACTIVE');
+  }
+
+  /**
+   * Ends an active usage session and frees up the facility in memory and PostgreSQL.
+   * @param {number} sessionId - The session to end.
+   * @param {'manual'|'automatic'|'auto_released'} [releaseType='manual'] - How the session was ended.
+   */
+  async endSession(sessionId, releaseType = 'manual') {
+    const session = sessions.find(s => s.id === sessionId);
+    if (!session) {
+      throw new Error('SessionNotFoundError: no session with that id');
+    }
+    if (session.status === 'ENDED') {
+      throw new Error('SessionAlreadyEndedError: session has already ended');
+    }
+
+    session.status = 'ENDED';
+    session.actualEndTime = new Date();
+
+    // 1. Update in-memory facility
+    const facility = facilities.find(f => f.id === session.facilityId);
+    if (facility) {
+      facility.status = 'AVAILABLE';
+    }
+
+    // 2. Persist update to PostgreSQL (Supabase)
+    try {
+      await facilityRepository.updateStatus(session.facilityId, 'available');
+      
+      // 3. Log the session in usage_logs with release_type ('manual' or 'automatic')
+      await usageLogRepository.insertLog(
+        session.id,
+        session.facilityId,
+        session.userId,
+        session.startTime,
+        session.actualEndTime,
+        releaseType === 'auto_released' ? 'automatic' : releaseType
+      );
+
+      console.log(`✅ [RES-48] Facility #${session.facilityId} auto-released & logged in database!`);
+    } catch (err) {
+      console.error('Error syncing auto-release to database:', err.message);
+    }
+
+    return true;
   }
 }
 

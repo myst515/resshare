@@ -19,6 +19,14 @@ import StoveImage
 import BookDropDown
     from './BookDropDown.jsx'
 
+/*
+ * NEW INTEGRATION:
+ * ApiService fetches real-time facility data from the PostgreSQL database
+ * based on the resident's floor.
+ */
+import ApiService
+    from './services/ApiService.js'
+
 
 /*
  * DashboardPage displays the resources available to the
@@ -31,6 +39,13 @@ import BookDropDown
 export default function DashboardPage({user}) {
 
     const activeUser = user || JSON.parse(localStorage.getItem('user') || '{}');
+
+    /*
+     * Safely resolve the active user from props or localStorage
+     * so that a newly logged-in resident's floor is always current.
+     */
+    const storedUser = localStorage.getItem('user');
+    const activeUser = user || (storedUser ? JSON.parse(storedUser) : { name: "Resident", floor_number: 1 });
 
 
     const [
@@ -55,106 +70,138 @@ export default function DashboardPage({user}) {
 
 
     /*
-     * Resource unit information used by the dashboard.
-     *
-     * Each unit stores its identifier, display label and
-     * current availability.
+     * DYNAMIC INTEGRATION STATE:
+     * Stores facility units retrieved from the PostgreSQL backend
+     * for the resident's floor.
      */
-    const Dryers = [
-        {
-            id: 1,
-            label: "Dryer 1",
-            available: true
-        },
+    const [
+        washingMachines,
+        setWashingMachines
+    ] =
+        React.useState([]);
 
-        {
-            id: 2,
-            label: "Dryer 2",
-            available: true
-        },
+    const [
+        dryers,
+        setDryers
+    ] =
+        React.useState([]);
 
-        {
-            id: 3,
-            label: "Dryer 3",
-            available: false,
-            reservedUntil:
-                "2026-09-26T17:30:00.000"
-        },
+    const [
+        stoves,
+        setStoves
+    ] =
+        React.useState([]);
 
-        {
-            id: 4,
-            label: "Dryer 4",
-            available: false,
-            reservedUntil:
-                "2026-09-26T17:30:00.000"
+    const [
+        isLoading,
+        setIsLoading
+    ] =
+        React.useState(true);
+
+    const [
+        error,
+        setError
+    ] =
+        React.useState(null);
+
+
+    /*
+     * DYNAMIC INTEGRATION EFFECT:
+     * Loads live facilities from PostgreSQL for the resident's floor.
+     * When refreshing, it preserves any active booking timers returned by the backend!
+     */
+    React.useEffect(() => {
+        async function fetchFloorResources() {
+            try {
+                setIsLoading(true);
+                setError(null);
+
+                const floorNumber = activeUser.floor_number || 1;
+
+                // 1. Fetch facilities on the resident's specific floor
+                let data = await ApiService.get(`/facilities/floor/${floorNumber}`);
+
+                // 2. If the current floor has no registered machines, fall back to all building facilities
+                if (!data || data.length === 0) {
+                    data = await ApiService.get('/facilities');
+                }
+
+                /*
+                 * Helper function to map PostgreSQL facility rows to the unit structure
+                 * required by BookDropDown and ResourceCard.
+                 * Includes reservedUntil so timers survive page reloads!
+                 */
+                const formatUnits = (rawList) =>
+                    rawList.map((f) => ({
+                        id: f.id,
+                        label: f.name,
+                        available: f.status === 'available',
+                        status: f.status,
+                        location: f.location,
+                        floor_number: f.floor_number,
+                        reservedUntil: f.reservedUntil || null
+                    }));
+
+                // 3. Categorize dynamic units by facility type
+                const washersList = data.filter((f) =>
+                    f.type.toLowerCase().includes('wash')
+                );
+
+                const dryersList = data.filter((f) =>
+                    f.type.toLowerCase().includes('dry')
+                );
+
+                const stovesList = data.filter((f) =>
+                    f.type.toLowerCase().includes('stove') ||
+                    f.type.toLowerCase().includes('kitchen')
+                );
+
+                setWashingMachines(formatUnits(washersList));
+                setDryers(formatUnits(dryersList));
+                setStoves(formatUnits(stovesList));
+
+            } catch (err) {
+                console.error("Failed to load floor resources:", err);
+                setError(err.message);
+            } finally {
+                setIsLoading(false);
+            }
         }
-    ];
 
+        fetchFloorResources();
+    }, [activeUser.floor_number]);
 
-    const Stoves = [
-        {
-            id: 1,
-            label: "Stove 1",
-            available: true
-        },
+    /*
+     * OPTION A: REAL BACKEND BOOKING INTEGRATION
+     * Sends the booking request to POST /api/facilities/book.
+     * Updates local state with the exact server expiration timestamp.
+     */
+    async function handleBookUnit(unit, durationMinutes) {
+        try {
+            const response = await ApiService.post('/facilities/book', {
+                facilityId: unit.id,
+                durationMinutes: durationMinutes
+            });
 
-        {
-            id: 2,
-            label: "Stove 2",
-            available: true
-        },
+            const reservedUntil = response.reservedUntil;
 
-        {
-            id: 3,
-            label: "Stove 3",
-            available: false
-        },
+            const updateList = (list) =>
+                list.map((u) =>
+                    u.id === unit.id
+                        ? { ...u, available: false, status: 'in_use', reservedUntil: reservedUntil }
+                        : u
+                );
 
-        {
-            id: 4,
-            label: "Stove 4",
-            available: false
-        },
+            // Update UI state immediately with the server's official expiration time
+            setWashingMachines((prev) => updateList(prev));
+            setDryers((prev) => updateList(prev));
+            setStoves((prev) => updateList(prev));
 
-        {
-            id: 5,
-            label: "Stove 5",
-            available: false
-        },
-
-        {
-            id: 6,
-            label: "Stove 6",
-            available: false
+        } catch (err) {
+            console.error('Failed to book facility:', err);
+            alert(`Booking Error: ${err.message}`);
         }
-    ];
-
-
-    const WashingMachines = [
-        {
-            id: 1,
-            label: "Washer 1",
-            available: false
-        },
-
-        {
-            id: 2,
-            label: "Washer 2",
-            available: true
-        },
-
-        {
-            id: 3,
-            label: "Washer 3",
-            available: false
-        },
-
-        {
-            id: 4,
-            label: "Washer 4",
-            available: false
-        }
-    ];
+    }
 
 
     /*
@@ -244,8 +291,7 @@ export default function DashboardPage({user}) {
 
                         <p>
                             Welcome back to your dashboard.
-                            Ready to reserve a shared
-                            resource today?
+                            Viewing shared facilities on <strong>Floor {activeUser.floor_number}</strong>.
                         </p>
 
 
@@ -263,6 +309,20 @@ export default function DashboardPage({user}) {
                         </p>
 
 
+                        {/* Loading and Error Feedback */}
+                        {isLoading && (
+                            <p className="text-gray-600 text-sm">
+                                Loading live facilities for Floor {activeUser.floor_number}...
+                            </p>
+                        )}
+
+                        {error && (
+                            <p className="text-red-500 text-sm">
+                                Error connecting to database: {error}
+                            </p>
+                        )}
+
+
                         <div className="resource-grid">
 
 
@@ -272,12 +332,12 @@ export default function DashboardPage({user}) {
 
                                 availability={
                                     checkAvailability(
-                                        WashingMachines
+                                        washingMachines
                                     )
                                 }
 
                                 total={
-                                    WashingMachines.length
+                                    washingMachines.length
                                 }
 
                                 link={
@@ -297,12 +357,12 @@ export default function DashboardPage({user}) {
 
                                 availability={
                                     checkAvailability(
-                                        Dryers
+                                        dryers
                                     )
                                 }
 
                                 total={
-                                    Dryers.length
+                                    dryers.length
                                 }
 
                                 link={
@@ -322,12 +382,12 @@ export default function DashboardPage({user}) {
 
                                 availability={
                                     checkAvailability(
-                                        Stoves
+                                        stoves
                                     )
                                 }
 
                                 total={
-                                    Stoves.length
+                                    stoves.length
                                 }
 
                                 link={
@@ -343,43 +403,58 @@ export default function DashboardPage({user}) {
                         </div>
 
 
+                        {/*
+                         * BookDropDown components receiving onBook={handleBookUnit}
+                         */}
                         <div className="resource-grid">
 
 
                             <BookDropDown
 
                                 units={
-                                    WashingMachines
+                                    washingMachines
                                 }
 
                                 isOpen={
                                     dropDownWasher
                                 }
 
+                                onBook={
+                                    handleBookUnit
+                                }
+
                             />
 
 
                             <BookDropDown
 
                                 units={
-                                    Dryers
+                                    dryers
                                 }
 
                                 isOpen={
                                     dropDownDryer
                                 }
 
+                                onBook={
+                                    handleBookUnit
+                                }
+
                             />
 
 
                             <BookDropDown
 
                                 units={
-                                    Stoves
+                                    stoves
                                 }
 
                                 isOpen={
                                     dropDownStove
+                                }
+
+                                onBook={
+                                    handleBookUnit
                                 }
 
                             />

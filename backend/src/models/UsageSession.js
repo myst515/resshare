@@ -20,6 +20,16 @@ class UsageSession {
     this.actualEndTime = null;
     this.status = 'ACTIVE'; // 'ACTIVE' or 'ENDED'
   }
+
+  /**
+   * Checks whether the session has passed its expected end time.
+   * @param {Date} [currentTime=new Date()]
+   * @returns {boolean}
+   */
+  isExpired(currentTime = new Date()) {
+    return currentTime >= new Date(this.expectedEndTime);
+  }
+  
 }
 
 module.exports = UsageSession;

@@ -56,34 +56,29 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
         const SelectedUnit = units.find((unit) => unit.id === SelectedId || null); {/* searches for selected unit, because only the id is stored in state not the full object*/}
         const canConfirm = Boolean(SelectedUnit) && usageMinutes!=='';
 
-        {/*handleConfirm is a function that handles the booking confirmation button click. it basically saves the id of the confirmed resource to state so that the UI can briefly show booked*/}
+        {/* handleConfirm now passes the selected unit AND the chosen duration in minutes to the parent */}
         const handleConfirm = () => {
-        
-        // Safety check: if nothing is selected, there's nothing to confirm.
-        if (!canConfirm) {
-            return;
-        }
+            if (!canConfirm) return;
 
-        // Mark this unit as confirmed so the UI can show "Booked".
-        setConfirmedId(SelectedUnit.id);
-        
+            const duration = parseInt(usageMinutes, 10);
 
-        // Let the parent component know a booking happened,
-        // but only if an onBook function was actually provided.
-        /*if (onBook) {
-            onBook(selectedUnit);
-        }*/
+            // Show brief "Booked" confirmation
+            setConfirmedId(SelectedUnit.id);
 
-        // Wait 2000ms (so the user can see the "Booked" confirmation),
-        // then reset everything back to its starting state.
-        setTimeout(() => {
-            setSelectedId(null);
-            setConfirmedId(null);
-
-            if (onClose) {
-            onClose();
+            // Pass the booking details to DashboardPage so the 15-minute countdown starts
+            if (onBook) {
+                onBook(SelectedUnit, duration);
             }
-        }, 2000);
+
+            setTimeout(() => {
+                setSelectedId(null);
+                setConfirmedId(null);
+                setUsageMinutes('');
+
+                if (onClose) {
+                    onClose();
+                }
+            }, 1500);
         };
 
         //The unit IDs the user asked to be notified about in localStorage
@@ -207,7 +202,7 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
                                 </div>
                                 : null}
 
-                <button className="rbd-confirm-btn" disabled={!canConfirm || isBooking} onClick={handleConfirm}>
+                <button className="rbd-confirm-btn" disabled={!canConfirm} onClick={handleConfirm}>
                     {SelectedId? `Confirm booking — ${units.find((u) => u.id === SelectedId)?.label}`: 'Select a unit above'}
                 </button>
                 <div className="rbd-toasts">{toasts.map((t) => <div key={t.id} className="rbd-toast">{t.text}</div>)}</div>
