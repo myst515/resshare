@@ -38,7 +38,7 @@ import ApiService
  */
 export default function DashboardPage({user}) {
 
-    const activeUser = user || JSON.parse(localStorage.getItem('user') || '{}');
+    //const activeUser = user || JSON.parse(localStorage.getItem('user') || '{}');
 
     /*
      * Safely resolve the active user from props or localStorage
