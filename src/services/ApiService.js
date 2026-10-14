@@ -168,6 +168,35 @@ class ApiService {
 
         return result;
     }
+
+
+    /**
+     * Sends a PATCH request to the backend.
+     *
+     * @param {string} endpoint - API endpoint.
+     * @param {Object} data - Data to send.
+     * @returns {Object} Parsed JSON response.
+     */
+
+    async patch(endpoint, data) {
+        const token = localStorage.getItem('token');
+
+        const response = await fetch(`${this.baseURL}${endpoint}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` })
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.error || 'PATCH request failed');
+        }
+
+        return result;
+    }
 }
 
 
@@ -176,4 +205,5 @@ class ApiService {
  * components communicate with the backend using the
  * same API configuration.
  */
+
 export default new ApiService();

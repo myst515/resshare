@@ -196,4 +196,40 @@ router.delete('/:id', requireAuth, requireAdmin, async (req, res) => {
     }
 });
 
+/**
+ * PATCH /api/facilities/:id/status
+ * Allows an administrator to toggle a facility between 'available' and 'suspended'.
+ * Enforces business rule: Cannot suspend a facility that is currently 'in_use'.
+ */
+router.patch('/:id/status', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        const { status } = req.body; // Expects 'available' or 'suspended'
+
+        if (!['available', 'suspended'].includes(status)) {
+            return res.status(400).json({ error: "Invalid status. Can only set to 'available' or 'suspended'." });
+        }
+
+        // 1. Fetch current facility state from PostgreSQL
+        const facility = await facilityRepository.getFacilityById(id);
+        if (!facility) {
+            return res.status(404).json({ error: 'Facility not found.' });
+        }
+
+        // 2. Business Rule: Cannot suspend a machine that a resident is actively using!
+        if (facility.status === 'in_use') {
+            return res.status(400).json({ error: 'Cannot suspend a facility that is currently in use by a resident.' });
+        }
+
+        // 3. Update status in PostgreSQL
+        await facilityRepository.updateStatus(id, status);
+        console.log(`🔄 Admin #${req.user.id} updated Facility #${id} status to '${status}'.`);
+
+        res.status(200).json({ message: 'Status updated successfully.', id, status });
+    } catch (err) {
+        console.error('Error updating status:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;
