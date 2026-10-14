@@ -43,11 +43,8 @@ export default function LoginPage(Funcs) {
      * by default, setShowCreate is a function used to update
      * the value of showCreate.
      */
-    const [
-        showCreate,
-        setShowCreate
-    ] =
-        React.useState(false)
+    const [showCreate,setShowCreate] = React.useState(false);
+    const [showPassword, setShowPassword] = React.useState(false);
 
 
     function CreateHandler() {
@@ -92,7 +89,7 @@ export default function LoginPage(Funcs) {
          * but the backend expects an email address.
          */
         const email =
-            formData.get('username')
+            formData.get('email')
 
 
         const password =
@@ -322,44 +319,46 @@ export default function LoginPage(Funcs) {
                         <form action={submit}>
 
 
-                            <label>
-                                username:
+                            <div className="form-row">
+                            <label htmlFor="username">email:</label>
+                            <input
+                                id="email"
+                                aria-label="enter email address"
+                                type="text"
+                                name="email"
+                                required
+                            />
+                        </div>
 
+                        <div className="form-row">
+                            <label htmlFor="password">password:</label>
+                            <span className="password-wrapper">
                                 <input
-                                    type="text"
-                                    name="username"
-                                    required
-                                />
-
-                            </label>
-
-
-                            <br />
-                            <br />
-
-
-                            <label>
-                                password:
-
-                                <input
-                                    type="password"
+                                    id="password"
+                                    aria-label="enter password"
+                                    type={showPassword ? 'text' : 'password'}
                                     name="password"
                                     required
                                 />
+                                <button
+                                    type="button"
+                                    className="toggle-password"
+                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                    onClick={() => setShowPassword((prev) => !prev)}
+                                >
+                                    {showPassword ? 'Hide' : 'Show'}
+                                </button>
+                            </span>
+                        </div>
 
-                            </label>
+                        <br />
 
-
-                            <br />
-                            <br />
-
-
-                            <button
-                                className="button"
-                                type="submit"
-                            >
-                                Login
-                            </button>
+                        <button
+                            className="button"
+                            type="submit"
+                        >
+                            Login
+                        </button>
 
 
                         </form>
@@ -375,6 +374,7 @@ export default function LoginPage(Funcs) {
 
 
                         <button
+                            aria-label='create new account'
                             className="cursor-pointer hover:opacity-40"
                             padding="10px"
                             width="100%"

@@ -655,3 +655,44 @@ input[type="number"] {
     padding: 10px 14px;
     border-radius: 8px;
 }
+
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.form-row label {
+  width: 70px;       
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.form-row input {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.form-row input { width: auto; };
+
+.form-row button:hover{
+    opacity: 0.6;
+}
+
+.form-row button{
+    cursor: pointer;
+}
+
+.password-wrapper {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.password-wrapper input {
+  width: 100%;
+  padding-right: 40px;
+}
