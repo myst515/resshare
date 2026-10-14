@@ -659,12 +659,12 @@ input[type="number"] {
 .form-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 2px;
   margin-bottom: 24px;
 }
 
 .form-row label {
-  width: 70px;       
+  width: 100px;       
   text-align: left;
   flex-shrink: 0;
 }
@@ -672,6 +672,7 @@ input[type="number"] {
 .form-row input {
   flex: 1;
   min-width: 0;
+  max-width: fit-content;
   box-sizing: border-box;
 }
 

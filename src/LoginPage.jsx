@@ -320,7 +320,7 @@ export default function LoginPage(Funcs) {
 
 
                             <div className="form-row">
-                            <label htmlFor="username">email:</label>
+                            <label htmlFor="username">user email:</label>
                             <input
                                 id="email"
                                 aria-label="enter email address"
