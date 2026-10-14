@@ -144,6 +144,30 @@ class ApiService {
 
         return result;
     }
+
+    /**
+     * Sends a DELETE request to the backend.
+     * @param {string} endpoint - API endpoint.
+     * @returns {Object} Parsed JSON response.
+     */
+    async delete(endpoint) {
+        const token = localStorage.getItem('token');
+
+        const response = await fetch(`${this.baseURL}${endpoint}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` })
+            }
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.error || 'Delete request failed');
+        }
+
+        return result;
+    }
 }
 
 

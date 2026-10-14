@@ -12,7 +12,7 @@ const router = express.Router();
 
 const facilityRepository = require('../../../database/repos/facilityRepository');
 const sessionManager = require('../services/SessionManager');
-const { requireAuth } = require('../middleware/authMiddleware');
+const { requireAuth, requireAdmin } = require('../middleware/authMiddleware');
 
 /**
  * Helper function: Attaches active session end times from SessionManager
@@ -123,6 +123,75 @@ router.get('/:id', requireAuth, async (req, res) => {
 
         res.status(200).json(facility);
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * POST /api/facilities
+ * Allows an administrator to create and save a new facility to PostgreSQL.
+ * Protected: Requires valid JWT and administrator role.
+ */
+router.post('/', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const { name, type, location } = req.body;
+
+        if (!name || !type || !location) {
+            return res.status(400).json({ error: 'Name, type, and location are required.' });
+        }
+
+        // Extract floor number from location (e.g., "Floor 2 Laundry Room" -> 2)
+        const match = location.match(/Floor\s*(\d+)/i);
+        const floorNumber = match ? parseInt(match[1], 10) : 1;
+
+        // Save directly to PostgreSQL (defaults status to 'available')
+        const newFacility = await facilityRepository.addFacility(
+            name.trim(),
+            type.trim(),
+            location.trim(),
+            floorNumber
+        );
+
+        console.log(`🏢 Admin #${req.user.id} added new facility: ${newFacility.name} on Floor ${floorNumber}`);
+
+        res.status(201).json(newFacility);
+    } catch (err) {
+        console.error('Error adding facility:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * DELETE /api/facilities/:id
+ * Permanently removes a facility from PostgreSQL.
+ * Protected: Requires valid JWT and administrator role.
+ */
+router.delete('/:id', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid facility ID provided.' });
+        }
+
+        // 1. Check if the facility exists
+        const facility = await facilityRepository.getFacilityById(id);
+        if (!facility) {
+            return res.status(404).json({ error: 'Facility not found.' });
+        }
+
+        // 2. Prevent removing a machine if it is currently in use (REQ-6.3)
+        if (facility.status === 'in_use') {
+            return res.status(400).json({ error: 'Cannot remove a facility that is currently in use.' });
+        }
+
+        // 3. Delete from PostgreSQL
+        await facilityRepository.removeFacility(id);
+        console.log(`🗑️ Admin #${req.user.id} permanently removed facility #${id} (${facility.name})`);
+
+        res.status(200).json({ message: 'Facility removed successfully.' });
+    } catch (err) {
+        console.error('Error removing facility:', err);
         res.status(500).json({ error: err.message });
     }
 });
