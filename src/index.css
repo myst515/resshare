@@ -697,3 +697,7 @@ input[type="number"] {
   width: 100%;
   padding-right: 40px;
 }
+
+.password-wrapper button{
+    padding-left: 10px
+}
