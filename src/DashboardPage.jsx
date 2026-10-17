@@ -21,24 +21,27 @@ import BookDropDown
 
 /*
  * NEW INTEGRATION:
- * ApiService fetches real-time facility data from the PostgreSQL database
- * based on the resident's floor.
+ * ApiService fetches real-time facility data and floor-specific
+ * announcements from the PostgreSQL database based on the resident's floor.
  */
 import ApiService
     from './services/ApiService.js'
 
 
 /*
- * DashboardPage displays the resources available to the
+ * DashboardPage displays the resources and announcements available to the
  * authenticated resident.
  *
  * NEW INTEGRATION:
  * The authenticated user is passed into this page from App.jsx.
  * The user information comes from the backend after login.
  */
-export default function DashboardPage({user}) {
-
-    //const activeUser = user || JSON.parse(localStorage.getItem('user') || '{}');
+export default function DashboardPage({
+    user = {
+        name: "Kagiso",
+        floor_number: 1
+    }
+}) {
 
     /*
      * Safely resolve the active user from props or localStorage
@@ -92,6 +95,16 @@ export default function DashboardPage({user}) {
     ] =
         React.useState([]);
 
+    /*
+     * DYNAMIC ANNOUNCEMENTS STATE:
+     * Stores announcements relevant to the resident's floor.
+     */
+    const [
+        announcements,
+        setAnnouncements
+    ] =
+        React.useState([]);
+
     const [
         isLoading,
         setIsLoading
@@ -107,11 +120,10 @@ export default function DashboardPage({user}) {
 
     /*
      * DYNAMIC INTEGRATION EFFECT:
-     * Loads live facilities from PostgreSQL for the resident's floor.
-     * When refreshing, it preserves any active booking timers returned by the backend!
+     * Loads live facilities and floor announcements from PostgreSQL.
      */
     React.useEffect(() => {
-        async function fetchFloorResources() {
+        async function fetchDashboardData() {
             try {
                 setIsLoading(true);
                 setError(null);
@@ -119,18 +131,12 @@ export default function DashboardPage({user}) {
                 const floorNumber = activeUser.floor_number || 1;
 
                 // 1. Fetch facilities on the resident's specific floor
-                let data = await ApiService.get(`/facilities/floor/${floorNumber}`);
+                let facilityData = await ApiService.get(`/facilities/floor/${floorNumber}`);
 
-                // 2. If the current floor has no registered machines, fall back to all building facilities
-                if (!data || data.length === 0) {
-                    data = await ApiService.get('/facilities');
+                if (!facilityData || facilityData.length === 0) {
+                    facilityData = await ApiService.get('/facilities');
                 }
 
-                /*
-                 * Helper function to map PostgreSQL facility rows to the unit structure
-                 * required by BookDropDown and ResourceCard.
-                 * Includes reservedUntil so timers survive page reloads!
-                 */
                 const formatUnits = (rawList) =>
                     rawList.map((f) => ({
                         id: f.id,
@@ -142,16 +148,15 @@ export default function DashboardPage({user}) {
                         reservedUntil: f.reservedUntil || null
                     }));
 
-                // 3. Categorize dynamic units by facility type
-                const washersList = data.filter((f) =>
+                const washersList = facilityData.filter((f) =>
                     f.type.toLowerCase().includes('wash')
                 );
 
-                const dryersList = data.filter((f) =>
+                const dryersList = facilityData.filter((f) =>
                     f.type.toLowerCase().includes('dry')
                 );
 
-                const stovesList = data.filter((f) =>
+                const stovesList = facilityData.filter((f) =>
                     f.type.toLowerCase().includes('stove') ||
                     f.type.toLowerCase().includes('kitchen')
                 );
@@ -160,21 +165,24 @@ export default function DashboardPage({user}) {
                 setDryers(formatUnits(dryersList));
                 setStoves(formatUnits(stovesList));
 
+                // 2. Fetch floor announcements
+                const newsData = await ApiService.get(`/announcements/floor/${floorNumber}`);
+                setAnnouncements(newsData);
+
             } catch (err) {
-                console.error("Failed to load floor resources:", err);
+                console.error("Failed to load dashboard data:", err);
                 setError(err.message);
             } finally {
                 setIsLoading(false);
             }
         }
 
-        fetchFloorResources();
+        fetchDashboardData();
     }, [activeUser.floor_number]);
 
     /*
-     * OPTION A: REAL BACKEND BOOKING INTEGRATION
-     * Sends the booking request to POST /api/facilities/book.
-     * Updates local state with the exact server expiration timestamp.
+     * Handles booking a machine for the selected duration (e.g. 15, 30, 45 minutes).
+     * Calculates the real reservedUntil timestamp and synchronizes to PostgreSQL.
      */
     async function handleBookUnit(unit, durationMinutes) {
         try {
@@ -192,7 +200,6 @@ export default function DashboardPage({user}) {
                         : u
                 );
 
-            // Update UI state immediately with the server's official expiration time
             setWashingMachines((prev) => updateList(prev));
             setDryers((prev) => updateList(prev));
             setStoves((prev) => updateList(prev));
@@ -493,29 +500,37 @@ export default function DashboardPage({user}) {
                         </h2>
 
 
+                        {/*
+                         * Building News dynamically populated from PostgreSQL
+                         * filtered by the resident's floor.
+                         */}
                         <div className="building-news">
-
 
                             <h3>
                                 🔔 Building News
                             </h3>
 
-
-                            {
-                                <p>
-                                    Dryer #2 is scheduled
-                                    for monthly filter
-                                    maintenance tomorrow
-                                    between 09:00 - 11:00 AM.
+                            {announcements.length === 0 ? (
+                                <p className="text-sm text-gray-500">
+                                    No active announcements for Floor {activeUser.floor_number}.
                                 </p>
-                            }
-
-
-                            <p>
-                                Please book other available
-                                Dryers during this time.
-                            </p>
-
+                            ) : (
+                                announcements.map((a) => (
+                                    <div key={a.id} className="mb-4 border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                                        <div className="flex justify-between items-center">
+                                            <strong className="text-base text-gray-800">
+                                                {a.title}
+                                            </strong>
+                                            <span className="text-[10px] bg-teal-50 text-teal-700 px-2 py-0.5 rounded font-semibold">
+                                                {a.floor_number ? `Floor ${a.floor_number}` : 'General'}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                            {a.body}
+                                        </p>
+                                    </div>
+                                ))
+                            )}
 
                         </div>
 

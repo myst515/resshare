@@ -4,6 +4,7 @@ const cors = require('cors');
 
 const authRoutes = require('./routes/authRoutes');
 const facilityRoutes = require('./routes/facilityRoutes');
+const announcementRoutes = require('./routes/announcementRoutes');
 
 const sessionManager = require('./services/SessionManager');
 const ReleaseTimerService = require('./services/ReleaseTimerService');
@@ -19,6 +20,7 @@ app.use(express.json());
  */
 app.use('/api/auth', authRoutes);
 app.use('/api/facilities', facilityRoutes);
+app.use('/api/announcements', announcementRoutes);
 
 app.get('/', (req, res) => {
   res.send('ResShare backend is running');

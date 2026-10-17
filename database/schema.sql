@@ -32,6 +32,23 @@ CREATE TABLE usage_logs (
                     CHECK (release_type IN ('manual', 'automatic'))
 );
 
+-- ResShare Announcements Schema
+-- Creates a table to store building-wide and floor-specific administrative broadcasts.
+
+CREATE TABLE announcements (
+    id            SERIAL PRIMARY KEY,
+    title         VARCHAR(150) NOT NULL,
+    body          TEXT NOT NULL,
+    floor_number  INTEGER DEFAULT NULL, -- NULL represents 'All Floors' (visible to every resident)
+    created_at    TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Seed initial broadcasts for testing
+INSERT INTO announcements (title, body, floor_number) VALUES
+('General Notice', 'Welcome to ResShare! Please ensure you book facilities before use.', NULL),
+('Dryer #2 filter maintenance', 'Scheduled for monthly filter maintenance tomorrow between 09:00–11:00 AM.', 2),
+('Kitchen deep cleaning', 'The Floor 1 shared kitchen will be closed for deep cleaning this Friday.', 1);
+
 -- Helpful indexes for common lookups
 CREATE INDEX idx_usage_logs_user_id ON usage_logs(user_id);
 CREATE INDEX idx_usage_logs_facility_id ON usage_logs(facility_id);
