@@ -113,6 +113,8 @@ export default function Announcements() {
                         <option value="1">Floor 1 Only</option>
                         <option value="2">Floor 2 Only</option>
                         <option value="3">Floor 3 Only</option>
+                        <option value="4">Floor 4 Only</option>
+                        <option value="5">Floor 5 Only</option>
                     </select>
                 </div>
 
