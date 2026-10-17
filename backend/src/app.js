@@ -47,4 +47,30 @@ if (process.env.NODE_ENV !== 'test') {
   });
 }
 
+const pool = require('../../database/db');
+
+/**
+ * STARTUP CLEANUP:
+ * If the server crashed or was restarted while facilities were 'in_use',
+ * their in-memory timers died. This resets any orphaned machines back to 'available'
+ * so they don't remain permanently locked.
+ */
+async function cleanupOrphanedFacilities() {
+  try {
+    const result = await pool.query(
+      "UPDATE facilities SET status = 'available' WHERE status = 'in_use' RETURNING id, name"
+    );
+
+    if (result.rows.length > 0) {
+      console.log(`🧹 [Startup Cleanup] Reset ${result.rows.length} orphaned facility/facilities back to 'available':`);
+      result.rows.forEach(f => console.log(`   - #${f.id} ${f.name}`));
+    }
+  } catch (err) {
+    console.error('Failed to clean up orphaned facilities on startup:', err.message);
+  }
+}
+
+// Run cleanup immediately on server boot
+cleanupOrphanedFacilities();
+
 module.exports = app;

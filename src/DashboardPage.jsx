@@ -117,6 +117,12 @@ export default function DashboardPage({
     ] =
         React.useState(null);
 
+    const [
+        reservationCount,
+        setReservationCount
+    ] = 
+        React.useState(0);    
+
 
     /*
      * DYNAMIC INTEGRATION EFFECT:
@@ -169,6 +175,10 @@ export default function DashboardPage({
                 const newsData = await ApiService.get(`/announcements/floor/${floorNumber}`);
                 setAnnouncements(newsData);
 
+                // 3. Fetch real reservation count for this resident
+                const countData = await ApiService.get('/facilities/my-reservations/count');
+                setReservationCount(countData.count);
+
             } catch (err) {
                 console.error("Failed to load dashboard data:", err);
                 setError(err.message);
@@ -203,6 +213,7 @@ export default function DashboardPage({
             setWashingMachines((prev) => updateList(prev));
             setDryers((prev) => updateList(prev));
             setStoves((prev) => updateList(prev));
+            setReservationCount((prev) => prev + 1);
 
         } catch (err) {
             console.error('Failed to book facility:', err);
@@ -430,6 +441,10 @@ export default function DashboardPage({
                                     handleBookUnit
                                 }
 
+                                onExpire={
+                                    fetchDashboardData
+                                }
+
                             />
 
 
@@ -447,6 +462,10 @@ export default function DashboardPage({
                                     handleBookUnit
                                 }
 
+                                onExpire={
+                                    fetchDashboardData
+                                }
+
                             />
 
 
@@ -462,6 +481,10 @@ export default function DashboardPage({
 
                                 onBook={
                                     handleBookUnit
+                                }
+
+                                onExpire={
+                                    fetchDashboardData
                                 }
 
                             />
@@ -483,7 +506,7 @@ export default function DashboardPage({
 
                             {
                                 <span>
-                                    10 This Month
+                                    {reservationCount} This Month
                                 </span>
                             }
 

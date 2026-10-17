@@ -18,7 +18,7 @@ import { Check, Lock, Clock} from 'lucide-react';
  */
 
 export default function BookDropDown({units=[{ id: 1, label: "Machine 1", available: true}, { id: 2, label: "Machine 2", available: true},
-                                    { id: 3, label: "Machine 3", available: false,},{ id: 4, label: "Machine 4", available: false}], isOpen, onBook}){
+                                    { id: 3, label: "Machine 3", available: false,},{ id: 4, label: "Machine 4", available: false}], isOpen, onBook, onExpire}){
         const DurationOptions = [];
         console.log(units)
         for (let minutes=15; minutes <= 120; minutes +=15){
@@ -170,7 +170,7 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
                             depending on the unit's current state */}
                         {!unit.available ? (
                             <span className="rbd-unit-status">
-                            <Lock size={13} /> In use {unit.reservedUntil? <RemainingTime endTime={new Date(unit.reservedUntil).getTime()} />: ""}
+                            <Lock size={13} /> In use {unit.reservedUntil? <RemainingTime endTime={new Date(unit.reservedUntil).getTime()} onExpire={onExpire} />: ""}
                             </span> 
                         ) : isConfirmed ? (
                             <span className="rbd-unit-status rbd-unit-status--ok">
