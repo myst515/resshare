@@ -101,4 +101,28 @@ router.delete('/:id', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * PUT /api/announcements/:id
+ * Updates an existing announcement. Admin only.
+ */
+router.put('/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { title, body, floorNumber } = req.body;
+
+    if (!title || !body) {
+      return res.status(400).json({ error: 'Title and body are required.' });
+    }
+
+    const floor = (floorNumber === 'All' || floorNumber === null || floorNumber === '') 
+      ? null 
+      : parseInt(floorNumber, 10);
+
+    const updated = await announcementRepository.updateAnnouncement(id, title.trim(), body.trim(), floor);
+    res.status(200).json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

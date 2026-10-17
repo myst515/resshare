@@ -67,9 +67,24 @@ async function deleteAnnouncement(id) {
   await pool.query(`DELETE FROM announcements WHERE id = $1`, [id]);
 }
 
+/**
+ * Updates an existing announcement's title, body, and floor target in PostgreSQL.
+ */
+async function updateAnnouncement(id, title, body, floorNumber = null) {
+  const result = await pool.query(
+    `UPDATE announcements
+     SET title = $1, body = $2, floor_number = $3
+     WHERE id = $4
+     RETURNING *`,
+    [title, body, floorNumber, id]
+  );
+  return result.rows[0];
+}
+
 module.exports = {
   createAnnouncement,
   getAllAnnouncements,
   getAnnouncementsByFloor,
-  deleteAnnouncement
+  deleteAnnouncement,
+  updateAnnouncement
 };

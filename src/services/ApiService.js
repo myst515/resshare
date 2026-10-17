@@ -197,7 +197,30 @@ class ApiService {
 
         return result;
     }
+
+    async put(endpoint, data) {
+        const token = localStorage.getItem('token');
+
+        const response = await fetch(`${this.baseURL}${endpoint}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` })
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.error || 'PUT request failed');
+        }
+
+        return result;
+    }
+    
 }
+
+
 
 
 /*
