@@ -43,14 +43,16 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
 
         {/*HandleSelect is a function that handles the selection of resources so that unavailable resources can't be selected, and it stores the selected resource's id to state. */}
         const HandleSelect = (unit) => {
-            if (!unit.available) {
+            if (!unit.available || unit.status === 'suspended') return;
 
-            }
-            else{
+             // TOGGLE OFF: If this unit is already selected, uncheck it and close duration!
+            if (SelectedId === unit.id) {
+                setSelectedId(null);
+                setUsageMinutes('');
+            } else {
                 setSelectedId(unit.id);
-                setUsageMinutes(''); // reset duration whenever selection changes
+                setUsageMinutes('');
             }
-            return;
         };
 
         const SelectedUnit = units.find((unit) => unit.id === SelectedId || null); {/* searches for selected unit, because only the id is stored in state not the full object*/}

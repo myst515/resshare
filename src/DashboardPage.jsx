@@ -50,27 +50,12 @@ export default function DashboardPage({
     const storedUser = localStorage.getItem('user');
     const activeUser = user || (storedUser ? JSON.parse(storedUser) : { name: "Resident", floor_number: 1 });
 
-
-    const [
-        dropDownWasher,
-        setDropDownWasher
-    ] =
-        React.useState(false);
-
-
-    const [
-        dropDownDryer,
-        setDropDownDryer
-    ] =
-        React.useState(false);
-
-
-    const [
-        dropDownStove,
-        setDropDownStove
-    ] =
-        React.useState(false);
-
+/*
+     * ACCORDION STATE:
+     * Stores which category dropdown is currently open ('washer', 'dryer', 'stove', or null).
+     * Opening one category automatically closes any other open category!
+     */
+    const [activeCategory, setActiveCategory] = React.useState(null);
 
     /*
      * DYNAMIC INTEGRATION STATE:
@@ -244,29 +229,10 @@ export default function DashboardPage({
      * of each individual resource card, so that one dropdown
      * doesn't cause all the resource cards to dropdown.
      */
-    function handleDropDownWasher(){
-
-        setDropDownWasher(
-            x => !x
-        );
+    
+    function toggleCategory(category) {
+        setActiveCategory((prev) => (prev === category ? null : category));
     }
-
-
-    function handleDropDownDryer(){
-
-        setDropDownDryer(
-            x => !x
-        );
-    }
-
-
-    function handleDropDownStove(){
-
-        setDropDownStove(
-            x => !x
-        );
-    }
-
 
     /*
      * checkAvailability iterates over the units object array
@@ -380,7 +346,7 @@ export default function DashboardPage({
                                 }
 
                                 handleDropDown={
-                                    handleDropDownWasher
+                                    () => toggleCategory('washer')
                                 }
 
                             />
@@ -405,7 +371,7 @@ export default function DashboardPage({
                                 }
 
                                 handleDropDown={
-                                    handleDropDownDryer
+                                    () => toggleCategory('dryer')
                                 }
 
                             />
@@ -430,7 +396,7 @@ export default function DashboardPage({
                                 }
 
                                 handleDropDown={
-                                    handleDropDownStove
+                                    () => toggleCategory('stove')
                                 }
 
                             />
@@ -452,7 +418,7 @@ export default function DashboardPage({
                                 }
 
                                 isOpen={
-                                    dropDownWasher
+                                    activeCategory === 'washer'
                                 }
 
                                 onBook={
@@ -462,6 +428,11 @@ export default function DashboardPage({
                                 onExpire={
                                     fetchDashboardData
                                 }
+
+                                onClose={
+                                    () => setActiveCategory(null)
+                                }
+
 
                             />
 
@@ -473,7 +444,7 @@ export default function DashboardPage({
                                 }
 
                                 isOpen={
-                                    dropDownDryer
+                                    activeCategory === 'dryer'
                                 }
 
                                 onBook={
@@ -482,6 +453,10 @@ export default function DashboardPage({
 
                                 onExpire={
                                     fetchDashboardData
+                                }
+
+                                onClose={
+                                    () => setActiveCategory(null)
                                 }
 
                             />
@@ -494,7 +469,7 @@ export default function DashboardPage({
                                 }
 
                                 isOpen={
-                                    dropDownStove
+                                    activeCategory === 'stove'
                                 }
 
                                 onBook={
@@ -503,6 +478,10 @@ export default function DashboardPage({
 
                                 onExpire={
                                     fetchDashboardData
+                                }
+
+                                onClose={
+                                    () => setActiveCategory(null)
                                 }
 
                             />
