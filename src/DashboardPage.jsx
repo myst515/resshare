@@ -125,70 +125,73 @@ export default function DashboardPage({
 
 
     /*
-     * DYNAMIC INTEGRATION EFFECT:
-     * Loads live facilities and floor announcements from PostgreSQL.
+     * DYNAMIC INTEGRATION FUNCTION:
+     * Defined at component level so onExpire can call it when a timer finishes!
+     */
+    const fetchDashboardData = React.useCallback(async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            const floorNumber = activeUser.floor_number || 1;
+
+            // 1. Fetch facilities on the resident's specific floor
+            let facilityData = await ApiService.get(`/facilities/floor/${floorNumber}`);
+
+            if (!facilityData || facilityData.length === 0) {
+                facilityData = await ApiService.get('/facilities');
+            }
+
+            const formatUnits = (rawList) =>
+                rawList.map((f) => ({
+                    id: f.id,
+                    label: f.name,
+                    available: f.status === 'available',
+                    status: f.status,
+                    location: f.location,
+                    floor_number: f.floor_number,
+                    reservedUntil: f.reservedUntil || null
+                }));
+
+            const washersList = facilityData.filter((f) =>
+                f.type.toLowerCase().includes('wash')
+            );
+
+            const dryersList = facilityData.filter((f) =>
+                f.type.toLowerCase().includes('dry')
+            );
+
+            const stovesList = facilityData.filter((f) =>
+                f.type.toLowerCase().includes('stove') ||
+                f.type.toLowerCase().includes('kitchen')
+            );
+
+            setWashingMachines(formatUnits(washersList));
+            setDryers(formatUnits(dryersList));
+            setStoves(formatUnits(stovesList));
+
+            // 2. Fetch floor announcements
+            const newsData = await ApiService.get(`/announcements/floor/${floorNumber}`);
+            setAnnouncements(newsData);
+
+            // 3. Fetch real reservation count for this resident
+            const countData = await ApiService.get('/facilities/my-reservations/count');
+            setReservationCount(countData.count);
+
+        } catch (err) {
+            console.error("Failed to load dashboard data:", err);
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [activeUser.floor_number]);
+
+    /*
+     * Calls fetchDashboardData when component mounts or floor changes.
      */
     React.useEffect(() => {
-        async function fetchDashboardData() {
-            try {
-                setIsLoading(true);
-                setError(null);
-
-                const floorNumber = activeUser.floor_number || 1;
-
-                // 1. Fetch facilities on the resident's specific floor
-                let facilityData = await ApiService.get(`/facilities/floor/${floorNumber}`);
-
-                if (!facilityData || facilityData.length === 0) {
-                    facilityData = await ApiService.get('/facilities');
-                }
-
-                const formatUnits = (rawList) =>
-                    rawList.map((f) => ({
-                        id: f.id,
-                        label: f.name,
-                        available: f.status === 'available',
-                        status: f.status,
-                        location: f.location,
-                        floor_number: f.floor_number,
-                        reservedUntil: f.reservedUntil || null
-                    }));
-
-                const washersList = facilityData.filter((f) =>
-                    f.type.toLowerCase().includes('wash')
-                );
-
-                const dryersList = facilityData.filter((f) =>
-                    f.type.toLowerCase().includes('dry')
-                );
-
-                const stovesList = facilityData.filter((f) =>
-                    f.type.toLowerCase().includes('stove') ||
-                    f.type.toLowerCase().includes('kitchen')
-                );
-
-                setWashingMachines(formatUnits(washersList));
-                setDryers(formatUnits(dryersList));
-                setStoves(formatUnits(stovesList));
-
-                // 2. Fetch floor announcements
-                const newsData = await ApiService.get(`/announcements/floor/${floorNumber}`);
-                setAnnouncements(newsData);
-
-                // 3. Fetch real reservation count for this resident
-                const countData = await ApiService.get('/facilities/my-reservations/count');
-                setReservationCount(countData.count);
-
-            } catch (err) {
-                console.error("Failed to load dashboard data:", err);
-                setError(err.message);
-            } finally {
-                setIsLoading(false);
-            }
-        }
-
         fetchDashboardData();
-    }, [activeUser.floor_number]);
+    }, [fetchDashboardData]);
 
     /*
      * Handles booking a machine for the selected duration (e.g. 15, 30, 45 minutes).
@@ -423,6 +426,7 @@ export default function DashboardPage({
 
                         {/*
                          * BookDropDown components receiving onBook={handleBookUnit}
+                         * and onExpire={fetchDashboardData} to auto-refresh when timers finish!
                          */}
                         <div className="resource-grid">
 

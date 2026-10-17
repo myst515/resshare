@@ -241,27 +241,18 @@ const pool = require('../../../database/db');
  */
 router.get('/my-reservations/count', requireAuth, async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = parseInt(req.user.id, 10);
 
-        // 1. Count completed sessions from PostgreSQL usage_logs for the current month
+        // Query all usage logs belonging to this specific resident
         const result = await pool.query(
-            `SELECT COUNT(*) AS count
-             FROM usage_logs
-             WHERE user_id = $1 
-               AND start_time >= DATE_TRUNC('month', CURRENT_DATE)`,
+            `SELECT COUNT(*) AS count 
+             FROM usage_logs 
+             WHERE user_id = $1`,
             [userId]
         );
 
-        const completedCount = parseInt(result.rows[0].count, 10);
-
-        // 2. Add any sessions currently active in memory for this resident
-        const activeCount = sessionManager
-            .getActiveSessions()
-            .filter((s) => s.userId === userId).length;
-
-        const totalThisMonth = completedCount + activeCount;
-
-        res.status(200).json({ count: totalThisMonth });
+        const count = parseInt(result.rows[0].count, 10);
+        res.status(200).json({ count });
     } catch (err) {
         console.error('Error fetching reservation count:', err);
         res.status(500).json({ error: err.message });

@@ -52,16 +52,16 @@ class SessionManager {
    */
 /**
    * Starts a new usage session on a facility.
-   * Checks the real PostgreSQL database to verify the facility exists.
+   * Immediately records the reservation in PostgreSQL usage_logs.
    */
   async startSession(facilityId, userId, estimatedDurationMinutes) {
-    // 1. Check PostgreSQL to make sure this facility actually exists
+    // 1. Check PostgreSQL to make sure this facility exists
     const facility = await facilityRepository.getFacilityById(facilityId);
     if (!facility) {
       throw new Error('FacilityNotFoundError: no facility with that id');
     }
 
-    // 2. Check if it's already in use
+    // 2. Check if already in use
     const activeSession = sessions.find(s => s.facilityId === facilityId && s.status === 'ACTIVE');
     if (activeSession || facility.status === 'in_use') {
       throw new Error('FacilityInUseError: facility is already in use');
@@ -93,6 +93,21 @@ class SessionManager {
 
     // 4. Update status in PostgreSQL to in_use
     await facilityRepository.updateStatus(facilityId, 'in_use');
+
+    // 5. PERMANENT LOGGING: Save to usage_logs immediately so reboots don't lose the reservation!
+    try {
+      await usageLogRepository.insertLog(
+        session.id,
+        facilityId,
+        userId,
+        startTime,
+        expectedEndTime,
+        'manual'
+      );
+      console.log(`📝 [Reservation Logged] User #${userId} booked Facility #${facilityId}. Saved to database.`);
+    } catch (logErr) {
+      console.warn('Could not insert initial usage log:', logErr.message);
+    }
 
     return session;
   }
