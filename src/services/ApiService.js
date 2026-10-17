@@ -16,10 +16,16 @@ class ApiService {
      *
      * @param {string} baseURL - Base URL of the backend API.
      */
+    /*
     constructor(
         baseURL = 'http://localhost:5000/api'
     ) {
 
+        this.baseURL = baseURL;
+    }*/
+
+    // Point directly to your live deployed backend on Render:
+    constructor(baseURL = 'https://resshare-backend.onrender.com/api') {
         this.baseURL = baseURL;
     }
 
