@@ -1,7 +1,7 @@
 import './index.css'
 import RemainingTime from "./RemainingTime"
 import { useEffect, useState } from 'react';
-import { Check, Lock, Clock} from 'lucide-react';
+import { Check, Lock, Clock, Ban} from 'lucide-react';
 
 /**
  * BookDropdown is standalone dropdown panel component for booking individual units of a resource.
@@ -146,11 +146,14 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
                     // Has this unit already been successfully booked?
                     const isConfirmed = ConfirmedId === unit.id;
 
+                    // Check if the administrator suspended this machine
+                    const isSuspended = unit.status === 'suspended';
+
                     // Build the button's class name based on its state.
                     // We start with the base class, then add extra classes
                     // depending on whether the unit is disabled or selected.
                     let buttonClass = 'rbd-unit';
-                    if (!unit.available) {
+                    if (!unit.available || isSuspended) {
                     buttonClass += ' rbd-unit--disabled';
                     }
                     if (isSelected) {
@@ -162,13 +165,17 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
                         <button
                         className={buttonClass}
                         onClick={() => HandleSelect(unit)}
-                        disabled={!unit.available}
+                        disabled={!unit.available || isSuspended}
                         >
                         <span className="rbd-unit-label">{unit.label}</span>
 
-                        {/* Show one of three possible status messages,
-                            depending on the unit's current state */}
-                        {!unit.available ? (
+                        {/* Show one of four possible status messages,
+                            depending on whether the unit is Suspended, In use, Booked, or Available */}
+                        {isSuspended ? (
+                            <span className="rbd-unit-status text-amber-600 font-semibold flex items-center gap-1">
+                                <Ban size={13} /> Suspended
+                            </span>
+                        ) : !unit.available ? (
                             <span className="rbd-unit-status">
                             <Lock size={13} /> In use {unit.reservedUntil? <RemainingTime endTime={new Date(unit.reservedUntil).getTime()} onExpire={onExpire} />: ""}
                             </span> 
@@ -183,7 +190,12 @@ export default function BookDropDown({units=[{ id: 1, label: "Machine 1", availa
                         )}
                         </button>
 
-                        {unit.available? null: <button className="rbd-notify-btn" type="button" onClick={()=>toggleNotify(unit)}>{notifyIds.includes(unit.id)? 'Notifying': 'Notify'}</button>}
+                        {/* Only show the Notify button if the machine is currently In Use, not when it is Suspended for maintenance */}
+                        {unit.available || isSuspended ? null : (
+                            <button className="rbd-notify-btn" type="button" onClick={()=>toggleNotify(unit)}>
+                                {notifyIds.includes(unit.id)? 'Notifying': 'Notify'}
+                            </button>
+                        )}
                     </li>
                     );
                 })}

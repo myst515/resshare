@@ -124,13 +124,16 @@ export default function DashboardPage({
         React.useState(0);    
 
 
-    /*
+/*
      * DYNAMIC INTEGRATION FUNCTION:
-     * Defined at component level so onExpire can call it when a timer finishes!
+     * Fetches live facilities and announcements.
+     * Only shows the "Loading..." spinner on the initial load, not during background polling.
      */
-    const fetchDashboardData = React.useCallback(async () => {
+    const fetchDashboardData = React.useCallback(async (isInitial = false) => {
         try {
-            setIsLoading(true);
+            if (isInitial) {
+                setIsLoading(true);
+            }
             setError(null);
 
             const floorNumber = activeUser.floor_number || 1;
@@ -182,17 +185,28 @@ export default function DashboardPage({
             console.error("Failed to load dashboard data:", err);
             setError(err.message);
         } finally {
-            setIsLoading(false);
+            if (isInitial) {
+                setIsLoading(false);
+            }
         }
     }, [activeUser.floor_number]);
 
     /*
-     * Calls fetchDashboardData when component mounts or floor changes.
+     * REAL-TIME AUTO-POLLING:
+     * Runs once on mount, then silently synchronizes with PostgreSQL every 4 seconds.
+     * When any machine is freed, the dashboard updates automatically without refreshing!
      */
     React.useEffect(() => {
-        fetchDashboardData();
-    }, [fetchDashboardData]);
+        // Initial fetch with loading spinner
+        fetchDashboardData(true);
 
+        // Silent heartbeat sync every 2 seconds
+        const pollInterval = setInterval(() => {
+            fetchDashboardData(false);
+        }, 2000);
+
+        return () => clearInterval(pollInterval);
+    }, [fetchDashboardData]);
     /*
      * Handles booking a machine for the selected duration (e.g. 15, 30, 45 minutes).
      * Calculates the real reservedUntil timestamp and synchronizes to PostgreSQL.

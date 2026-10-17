@@ -1,8 +1,8 @@
 import './index.css';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import ApiService from './services/ApiService.js';
 
-{/* StatusShape renders distinct badges for Available, In Use, and Suspended */}
+{/* StatusShape renders clean badges: Available, In Use, or Suspended */}
 function StatusShape({ status }) {
     let styles = "bg-gray-100 text-gray-500";
     let label = "Suspended";
@@ -34,12 +34,18 @@ export default function AdminPanel() {
     });
     const [activeFloor, setActiveFloor] = useState("All");
 
-    async function loadFacilities() {
+    /*
+     * DYNAMIC POLLING FUNCTION:
+     * Queries PostgreSQL for the latest facility states.
+     * Updates state only when changes are detected to prevent unnecessary re-renders.
+     */
+    const loadFacilities = useCallback(async (isInitial = false) => {
         try {
-            setIsLoading(true);
+            if (isInitial) {
+                setIsLoading(true);
+            }
             const data = await ApiService.get('/facilities');
 
-            // Preserves real PostgreSQL status ('available', 'in_use', 'suspended')
             const formatted = data.map(f => ({
                 id: f.id,
                 name: f.name,
@@ -49,17 +55,37 @@ export default function AdminPanel() {
                 status: f.status
             }));
 
-            setResources(formatted);
+            // Compare with current state before updating to avoid UI flickering
+            setResources((prev) => {
+                const hasChanged = JSON.stringify(prev) !== JSON.stringify(formatted);
+                return hasChanged ? formatted : prev;
+            });
+
         } catch (err) {
             console.error('Failed to load facilities:', err);
         } finally {
-            setIsLoading(false);
+            if (isInitial) {
+                setIsLoading(false);
+            }
         }
-    }
-
-    useEffect(() => {
-        loadFacilities();
     }, []);
+
+    /*
+     * REAL-TIME BACKGROUND POLLING TIMER:
+     * Polls the database every 3 seconds to check if any machine's status changed.
+     * Automatically updates the admin view when a resident starts or ends a session!
+     */
+    useEffect(() => {
+        // Initial fetch on mount
+        loadFacilities(true);
+
+        // Background polling timer running every 3 seconds
+        const pollTimer = setInterval(() => {
+            loadFacilities(false);
+        }, 3000);
+
+        return () => clearInterval(pollTimer);
+    }, [loadFacilities]);
 
     const floors = ["All", ...new Set(resources.map((r) => `Floor ${r.floor_number}`))];
 
@@ -77,7 +103,7 @@ export default function AdminPanel() {
                 status: newDbStatus
             });
 
-            // Update UI on success
+            // Update UI immediately, background polling will keep it in sync
             setResources((prev) =>
                 prev.map((r) => (r.id === resource.id ? { ...r, status: newDbStatus } : r))
             );
