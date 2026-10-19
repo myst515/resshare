@@ -142,21 +142,33 @@ export default function App() {
                  * LoginPage receives the functions used to
                  * update the authentication and administrator
                  * state after successful backend authentication.
+                 *
+                 * NEW INTEGRATION:
+                 * If already logged in, automatically routes users to their portal
+                 * instead of showing the login form again.
                  */}
                 <Route
                     path="/"
                     element={
-                        <LoginPage
-                            authFunc={
-                                setIsAuthenticated
-                            }
-                            adminFunc={
-                                setIsAdmin
-                            }
-                            userFunc={
-                                setUser
-                            }    
-                        />
+                        isAuthenticated ? (
+                            isAdmin ? (
+                                <Navigate to="/AdminPage" replace />
+                            ) : (
+                                <Navigate to="/DashboardPage" replace />
+                            )
+                        ) : (
+                            <LoginPage
+                                authFunc={
+                                    setIsAuthenticated
+                                }
+                                adminFunc={
+                                    setIsAdmin
+                                }
+                                userFunc={
+                                    setUser
+                                }    
+                            />
+                        )
                     }
                 />
 
@@ -166,17 +178,15 @@ export default function App() {
                  *
                  * NEW INTEGRATION:
                  *
-                 * ProtectedRoute checks whether a JWT exists
-                 * before allowing the DashboardPage to render.
-                 *
-                 * The actual authenticated user's information
-                 * is also passed to DashboardPage.
+                 * ProtectedRoute with roleRequired="resident" blocks both
+                 * unauthenticated visitors and logged-in administrators from
+                 * accessing the resident dashboard.
                  */}
                 <Route
                     path="/DashboardPage"
                     element={
 
-                        <ProtectedRoute>
+                        <ProtectedRoute roleRequired="resident">
 
                             <DashboardPage
                                 user={user}
@@ -191,26 +201,31 @@ export default function App() {
                 {/*
                  * Admin route.
                  *
-                 * The user must be authenticated AND have
-                 * the administrator role before accessing
-                 * the AdminPage.
+                 * NEW INTEGRATION:
+                 *
+                 * ProtectedRoute with roleRequired="admin" blocks both
+                 * unauthenticated visitors and standard residents from
+                 * accessing the administrator control panel.
                  */}
                 <Route
                     path="/AdminPage"
                     element={
 
-                        isAuthenticated && isAdmin
-
-                            ?
+                        <ProtectedRoute roleRequired="admin">
 
                             <AdminPage />
 
-                            :
+                        </ProtectedRoute>
 
-                            <Navigate
-                                to="/"
-                            />
+                    }
+                />
 
+
+                {/* Catch-all route to redirect invalid URLs */}
+                <Route
+                    path="*"
+                    element={
+                        <Navigate to="/" replace />
                     }
                 />
 
